@@ -1,0 +1,1548 @@
+{
+  "payments": [
+    {
+      "id": "XhTGDrixy6vPuWEInWJvNbBa25EZY",
+      "created_at": "2026-06-18T13:43:39.856Z",
+      "updated_at": "2026-06-18T13:43:44.542Z",
+      "amount_money": {
+        "amount": 500000,
+        "currency": "USD"
+      },
+      "status": "COMPLETED",
+      "delay_duration": "PT168H",
+      "source_type": "CARD",
+      "card_details": {
+        "status": "CAPTURED",
+        "card": {
+          "card_brand": "AMERICAN_EXPRESS",
+          "last_4": "3022",
+          "exp_month": 3,
+          "exp_year": 2029,
+          "fingerprint": "sq-1-PutfKJLbUIWE1W6sFjBB47Q0Re-eXKLt00eTNLYW-ZqLjt2rSW3CQV_UuzJAmxx5wg",
+          "card_type": "CREDIT",
+          "prepaid_type": "NOT_PREPAID",
+          "bin": "378751",
+          "payment_account_reference": "A000S2ZHAAM6TLP8T7Y3QY3NLS8SC"
+        },
+        "entry_method": "KEYED",
+        "cvv_status": "CVV_ACCEPTED",
+        "avs_status": "AVS_ACCEPTED",
+        "auth_result_code": "282645",
+        "statement_description": "SMG CARES INC",
+        "card_payment_timeline": {
+          "authorized_at": "2026-06-18T13:43:40.486Z",
+          "captured_at": "2026-06-18T13:43:40.816Z"
+        }
+      },
+      "location_id": "L18DV1JW2HV7G",
+      "order_id": "be2jCnPQcXQZRbiYu00NrRAhWD7YY",
+      "risk_evaluation": {
+        "created_at": "2026-06-18T13:45:43.849Z",
+        "risk_level": "NORMAL"
+      },
+      "processing_fee": [
+        {
+          "effective_at": "2026-06-18T15:43:42.000Z",
+          "type": "INITIAL",
+          "amount_money": {
+            "amount": 14530,
+            "currency": "USD"
+          }
+        }
+      ],
+      "buyer_email_address": "jonah@outsideunlimited.com",
+      "note": "Barbecue Sponsor",
+      "customer_id": "A0Q2G23XVRTKBR41N2CV4GQ4N4",
+      "total_money": {
+        "amount": 500000,
+        "currency": "USD"
+      },
+      "approved_money": {
+        "amount": 500000,
+        "currency": "USD"
+      },
+      "receipt_number": "XhTG",
+      "receipt_url": "https://squareup.com/receipt/preview/XhTGDrixy6vPuWEInWJvNbBa25EZY",
+      "delay_action": "CANCEL",
+      "delayed_until": "2026-06-25T13:43:39.856Z",
+      "application_details": {
+        "square_product": "ECOMMERCE_API",
+        "application_id": "sq0idp-4go8LYRYv9kpvI97_T7gQQ"
+      },
+      "version_token": "bDkGBauTw5b0LxGCrfYrZFOagyBV87bvNQwYR0nWmnn6o"
+    },
+    {
+      "id": "18lwdXHDCF7HsAslXt5evu8ZqR7YY",
+      "created_at": "2026-06-18T11:27:28.386Z",
+      "updated_at": "2026-06-18T11:27:28.652Z",
+      "amount_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "status": "FAILED",
+      "delay_duration": "PT168H",
+      "source_type": "CARD",
+      "card_details": {
+        "status": "FAILED",
+        "card": {
+          "card_brand": "MASTERCARD",
+          "last_4": "1780",
+          "exp_month": 6,
+          "exp_year": 2030,
+          "fingerprint": "sq-1-hO1Dzg5U-JPfBpvf7DzZRGzXy1zNgu8pwDe8J-4IIVf6b_kpvuQPbhAfB_x7ODSokw",
+          "card_type": "DEBIT",
+          "prepaid_type": "NOT_PREPAID",
+          "bin": "536619",
+          "payment_account_reference": "500116E8Y1WSBQ4T1HRC6L4R90UJS"
+        },
+        "entry_method": "KEYED",
+        "cvv_status": "CVV_NOT_CHECKED",
+        "avs_status": "AVS_NOT_CHECKED",
+        "errors": [
+          {
+            "code": "GENERIC_DECLINE",
+            "detail": "Authorization error: 'GENERIC_DECLINE'",
+            "category": "PAYMENT_METHOD_ERROR"
+          }
+        ],
+        "statement_description": "SQ *SMG CARES INC",
+        "card_payment_timeline": {
+          "authorized_at": "2026-06-18T11:27:28.652Z"
+        }
+      },
+      "location_id": "L18DV1JW2HV7G",
+      "order_id": "TG4DLd3IHfz9B1FsbLNdu73IbcEZY",
+      "buyer_email_address": "mughalasad449@gmail.com",
+      "note": "Custom Donation",
+      "total_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "approved_money": {
+        "amount": 0,
+        "currency": "USD"
+      },
+      "delay_action": "CANCEL",
+      "delayed_until": "2026-06-25T11:27:28.386Z",
+      "application_details": {
+        "square_product": "ECOMMERCE_API",
+        "application_id": "sq0idp-4go8LYRYv9kpvI97_T7gQQ"
+      },
+      "version_token": "fEO2LqEPAnqeTQcCYPl51YQSHRB1Au6lKib3EscKGgh6o"
+    },
+    {
+      "id": "v1nI0VytVlBgRQs53HylSrWeYJ6YY",
+      "created_at": "2026-06-17T14:41:23.929Z",
+      "updated_at": "2026-06-17T14:41:28.858Z",
+      "amount_money": {
+        "amount": 500000,
+        "currency": "USD"
+      },
+      "status": "COMPLETED",
+      "delay_duration": "PT168H",
+      "source_type": "CARD",
+      "card_details": {
+        "status": "CAPTURED",
+        "card": {
+          "card_brand": "MASTERCARD",
+          "last_4": "1763",
+          "exp_month": 5,
+          "exp_year": 2030,
+          "fingerprint": "sq-1-IpVMX0NCVJhlZCWyirfF-7QaoIb5JLmimnNr6Ay6iBkUREP9N7vK_44dE2dZ6c3wOg",
+          "card_type": "CREDIT",
+          "prepaid_type": "NOT_PREPAID",
+          "bin": "558962",
+          "payment_account_reference": "500187SR8EVUXJ5MQ067OA2TMNYX2"
+        },
+        "entry_method": "KEYED",
+        "cvv_status": "CVV_ACCEPTED",
+        "avs_status": "AVS_ACCEPTED",
+        "auth_result_code": "01418Q",
+        "statement_description": "SQ *SMG CARES INC",
+        "card_payment_timeline": {
+          "authorized_at": "2026-06-17T14:41:24.467Z",
+          "captured_at": "2026-06-17T14:41:24.758Z"
+        }
+      },
+      "location_id": "L18DV1JW2HV7G",
+      "order_id": "llpM0Gh2Bzd1oOVRqphnqETQsVXZY",
+      "risk_evaluation": {
+        "created_at": "2026-06-17T14:43:26.742Z",
+        "risk_level": "NORMAL"
+      },
+      "processing_fee": [
+        {
+          "effective_at": "2026-06-17T16:41:25.000Z",
+          "type": "INITIAL",
+          "amount_money": {
+            "amount": 14530,
+            "currency": "USD"
+          }
+        }
+      ],
+      "buyer_email_address": "info@linden-wood.net",
+      "note": "Golf Cart Sponsor",
+      "customer_id": "6QTR4ZKP3J9CM8R7RMAEPD82EM",
+      "total_money": {
+        "amount": 500000,
+        "currency": "USD"
+      },
+      "approved_money": {
+        "amount": 500000,
+        "currency": "USD"
+      },
+      "receipt_number": "v1nI",
+      "receipt_url": "https://squareup.com/receipt/preview/v1nI0VytVlBgRQs53HylSrWeYJ6YY",
+      "delay_action": "CANCEL",
+      "delayed_until": "2026-06-24T14:41:23.929Z",
+      "application_details": {
+        "square_product": "ECOMMERCE_API",
+        "application_id": "sq0idp-4go8LYRYv9kpvI97_T7gQQ"
+      },
+      "version_token": "uJqIb4Zk7VppVhawkLnBSiZYRUq8Gii3cZlSdjB8RiN6o"
+    },
+    {
+      "id": "ZwslIOQsjjW8nxDO5lGWg9kmrCMZY",
+      "created_at": "2026-06-16T14:40:26.078Z",
+      "updated_at": "2026-06-16T14:40:28.573Z",
+      "amount_money": {
+        "amount": 400000,
+        "currency": "USD"
+      },
+      "status": "COMPLETED",
+      "delay_duration": "PT168H",
+      "source_type": "CARD",
+      "card_details": {
+        "status": "CAPTURED",
+        "card": {
+          "card_brand": "MASTERCARD",
+          "last_4": "4016",
+          "exp_month": 1,
+          "exp_year": 2029,
+          "fingerprint": "sq-1-77fJFgZ9qG0gV_TlOOeEEAhgnJwhJBl9JcpY649U056mQdtao1v4euAlyPaPbpdfgw",
+          "card_type": "CREDIT",
+          "prepaid_type": "NOT_PREPAID",
+          "bin": "510950",
+          "payment_account_reference": "5001EGG1QZV264INAKK61JC7DHPIJ"
+        },
+        "entry_method": "KEYED",
+        "cvv_status": "CVV_ACCEPTED",
+        "avs_status": "AVS_ACCEPTED",
+        "auth_result_code": "00794Q",
+        "statement_description": "SQ *SMG CARES INC",
+        "card_payment_timeline": {
+          "authorized_at": "2026-06-16T14:40:26.504Z",
+          "captured_at": "2026-06-16T14:40:26.799Z"
+        }
+      },
+      "location_id": "L18DV1JW2HV7G",
+      "order_id": "BNmAusaVyDaBMHrnoVf6f87sayVZY",
+      "risk_evaluation": {
+        "created_at": "2026-06-16T14:42:27.880Z",
+        "risk_level": "NORMAL"
+      },
+      "processing_fee": [
+        {
+          "effective_at": "2026-06-16T16:40:27.000Z",
+          "type": "INITIAL",
+          "amount_money": {
+            "amount": 11630,
+            "currency": "USD"
+          }
+        },
+        {
+          "effective_at": "2026-06-16T16:40:27.000Z",
+          "type": "ADJUSTMENT",
+          "amount_money": {
+            "amount": -2867,
+            "currency": "USD"
+          }
+        }
+      ],
+      "buyer_email_address": "phillip@schulmaninsurance.com",
+      "note": "Pin Flag Sponsor",
+      "customer_id": "267E3TX0H1NSNH21S0M2VQ175C",
+      "total_money": {
+        "amount": 400000,
+        "currency": "USD"
+      },
+      "approved_money": {
+        "amount": 400000,
+        "currency": "USD"
+      },
+      "receipt_number": "Zwsl",
+      "receipt_url": "https://squareup.com/receipt/preview/ZwslIOQsjjW8nxDO5lGWg9kmrCMZY",
+      "delay_action": "CANCEL",
+      "delayed_until": "2026-06-23T14:40:26.078Z",
+      "application_details": {
+        "square_product": "ECOMMERCE_API",
+        "application_id": "sq0idp-4go8LYRYv9kpvI97_T7gQQ"
+      },
+      "version_token": "65R9tOkEJCCtGjmdUfOMXQjIkowJAk1qKSaHpss0rGD6o"
+    },
+    {
+      "id": "9MjsnCwF1q6UJ1k0SzTTZfoRXM6YY",
+      "created_at": "2026-06-15T15:04:08.751Z",
+      "updated_at": "2026-06-15T15:04:16.464Z",
+      "amount_money": {
+        "amount": 100,
+        "currency": "USD"
+      },
+      "status": "COMPLETED",
+      "delay_duration": "PT70M",
+      "source_type": "CARD",
+      "card_details": {
+        "status": "CAPTURED",
+        "card": {
+          "card_brand": "MASTERCARD",
+          "last_4": "0742",
+          "exp_month": 5,
+          "exp_year": 2028,
+          "fingerprint": "sq-1-BYEYOCmACr6ATNZLNF-DgBFy3GlfdPWD5MJ39K1Px73-ee1-ZN6rjcFT1x6EXfV0yg",
+          "card_type": "CREDIT",
+          "prepaid_type": "NOT_PREPAID",
+          "bin": "558958",
+          "payment_account_reference": "5001620BYAD1QI4QQN8DDIF7MZ3OI"
+        },
+        "entry_method": "SWIPED",
+        "cvv_status": "CVV_NOT_CHECKED",
+        "avs_status": "AVS_NOT_CHECKED",
+        "auth_result_code": "02279Q",
+        "statement_description": "SQ *SMG CARES INC",
+        "device_details": {
+          "device_id": "DEVICE_INSTALLATION_ID:526B034D-A337-404B-A6CE-385609B6ED31",
+          "device_name": "Kinshuk’s 17 Pro",
+          "device_installation_id": "526B034D-A337-404B-A6CE-385609B6ED31"
+        },
+        "card_payment_timeline": {
+          "authorized_at": "2026-06-15T15:04:09.359Z",
+          "captured_at": "2026-06-15T15:04:12.299Z"
+        }
+      },
+      "location_id": "L18DV1JW2HV7G",
+      "order_id": "lTEIBuR2RVyjMNTNLUrtPOi3FIBZY",
+      "processing_fee": [
+        {
+          "effective_at": "2026-06-15T17:04:13.000Z",
+          "type": "INITIAL",
+          "amount_money": {
+            "amount": 18,
+            "currency": "USD"
+          }
+        },
+        {
+          "effective_at": "2026-06-15T17:04:13.000Z",
+          "type": "ADJUSTMENT",
+          "amount_money": {
+            "amount": -18,
+            "currency": "USD"
+          }
+        }
+      ],
+      "customer_id": "CPEF5PN4SRDZV1PE9SGY4MER6M",
+      "total_money": {
+        "amount": 100,
+        "currency": "USD"
+      },
+      "approved_money": {
+        "amount": 100,
+        "currency": "USD"
+      },
+      "receipt_number": "9Mjs",
+      "receipt_url": "https://squareup.com/receipt/preview/9MjsnCwF1q6UJ1k0SzTTZfoRXM6YY",
+      "delay_action": "CANCEL",
+      "delayed_until": "2026-06-15T16:14:08.751Z",
+      "device_details": {
+        "device_id": "DEVICE_INSTALLATION_ID:526B034D-A337-404B-A6CE-385609B6ED31",
+        "device_name": "Kinshuk’s 17 Pro",
+        "device_installation_id": "526B034D-A337-404B-A6CE-385609B6ED31"
+      },
+      "application_details": {
+        "square_product": "SQUARE_POS"
+      },
+      "version_token": "LBo57eOhOjn72c0Mct3oE1i2tu0uuKQBrpt0MCK2XnM6o"
+    },
+    {
+      "id": "rjf4Md0H3PxgcCy2fPSTJBznkeOZY",
+      "created_at": "2026-06-15T15:03:44.969Z",
+      "updated_at": "2026-06-15T15:03:50.229Z",
+      "amount_money": {
+        "amount": 100,
+        "currency": "USD"
+      },
+      "status": "COMPLETED",
+      "delay_duration": "PT70M",
+      "source_type": "CARD",
+      "card_details": {
+        "status": "CAPTURED",
+        "card": {
+          "card_brand": "MASTERCARD",
+          "last_4": "0742",
+          "exp_month": 5,
+          "exp_year": 2028,
+          "fingerprint": "sq-1-BYEYOCmACr6ATNZLNF-DgBFy3GlfdPWD5MJ39K1Px73-ee1-ZN6rjcFT1x6EXfV0yg",
+          "card_type": "CREDIT",
+          "prepaid_type": "NOT_PREPAID",
+          "bin": "558958",
+          "payment_account_reference": "5001620BYAD1QI4QQN8DDIF7MZ3OI"
+        },
+        "entry_method": "CONTACTLESS",
+        "cvv_status": "CVV_NOT_CHECKED",
+        "avs_status": "AVS_NOT_CHECKED",
+        "auth_result_code": "00367Q",
+        "application_identifier": "A0000000041010",
+        "application_name": "CAPITAL ONE",
+        "application_cryptogram": "dcc4bed53b5a78f1",
+        "verification_method": "NONE",
+        "verification_results": "SUCCESS",
+        "statement_description": "SQ *SMG CARES INC",
+        "device_details": {
+          "device_id": "DEVICE_INSTALLATION_ID:526B034D-A337-404B-A6CE-385609B6ED31",
+          "device_name": "Kinshuk’s 17 Pro",
+          "device_installation_id": "526B034D-A337-404B-A6CE-385609B6ED31"
+        },
+        "card_payment_timeline": {
+          "authorized_at": "2026-06-15T15:03:45.782Z",
+          "captured_at": "2026-06-15T15:03:48.331Z"
+        },
+        "emv_details": {}
+      },
+      "location_id": "L18DV1JW2HV7G",
+      "order_id": "Tcz9U5ZSm40D3I1Wn8J0Adk2AjIZY",
+      "processing_fee": [
+        {
+          "effective_at": "2026-06-15T17:03:49.000Z",
+          "type": "INITIAL",
+          "amount_money": {
+            "amount": 18,
+            "currency": "USD"
+          }
+        },
+        {
+          "effective_at": "2026-06-15T17:03:49.000Z",
+          "type": "ADJUSTMENT",
+          "amount_money": {
+            "amount": -18,
+            "currency": "USD"
+          }
+        }
+      ],
+      "customer_id": "CPEF5PN4SRDZV1PE9SGY4MER6M",
+      "total_money": {
+        "amount": 100,
+        "currency": "USD"
+      },
+      "approved_money": {
+        "amount": 100,
+        "currency": "USD"
+      },
+      "receipt_number": "rjf4",
+      "receipt_url": "https://squareup.com/receipt/preview/rjf4Md0H3PxgcCy2fPSTJBznkeOZY",
+      "delay_action": "CANCEL",
+      "delayed_until": "2026-06-15T16:13:44.969Z",
+      "device_details": {
+        "device_id": "DEVICE_INSTALLATION_ID:526B034D-A337-404B-A6CE-385609B6ED31",
+        "device_name": "Kinshuk’s 17 Pro",
+        "device_installation_id": "526B034D-A337-404B-A6CE-385609B6ED31"
+      },
+      "application_details": {
+        "square_product": "SQUARE_POS"
+      },
+      "version_token": "h57KjenrCyq9qiU2kxiz7TMdi11Zfe816yZi8d2sKAR6o"
+    },
+    {
+      "id": "PNxF1LrrHuCXyaWo78dUv0n8Vr9YY",
+      "created_at": "2026-06-15T13:11:49.765Z",
+      "updated_at": "2026-06-15T13:11:53.391Z",
+      "amount_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "status": "COMPLETED",
+      "delay_duration": "PT168H",
+      "source_type": "CARD",
+      "card_details": {
+        "status": "CAPTURED",
+        "card": {
+          "card_brand": "MASTERCARD",
+          "last_4": "0742",
+          "exp_month": 5,
+          "exp_year": 2028,
+          "fingerprint": "sq-1-BYEYOCmACr6ATNZLNF-DgBFy3GlfdPWD5MJ39K1Px73-ee1-ZN6rjcFT1x6EXfV0yg",
+          "card_type": "CREDIT",
+          "prepaid_type": "NOT_PREPAID",
+          "bin": "558958",
+          "payment_account_reference": "5001620BYAD1QI4QQN8DDIF7MZ3OI"
+        },
+        "entry_method": "KEYED",
+        "cvv_status": "CVV_ACCEPTED",
+        "avs_status": "AVS_ACCEPTED",
+        "auth_result_code": "04509Q",
+        "statement_description": "SQ *SMG CARES INC",
+        "card_payment_timeline": {
+          "authorized_at": "2026-06-15T13:11:50.373Z",
+          "captured_at": "2026-06-15T13:11:50.673Z"
+        }
+      },
+      "location_id": "L18DV1JW2HV7G",
+      "order_id": "JteLTTHfQQEwNuS7RSfuGtff5zdZY",
+      "risk_evaluation": {
+        "created_at": "2026-06-15T13:13:53.284Z",
+        "risk_level": "NORMAL"
+      },
+      "processing_fee": [
+        {
+          "effective_at": "2026-06-15T15:11:52.000Z",
+          "type": "INITIAL",
+          "amount_money": {
+            "amount": 59,
+            "currency": "USD"
+          }
+        },
+        {
+          "effective_at": "2026-06-15T15:11:52.000Z",
+          "type": "ADJUSTMENT",
+          "amount_money": {
+            "amount": -59,
+            "currency": "USD"
+          }
+        }
+      ],
+      "buyer_email_address": "KSHARMA@SMGABA.COM",
+      "note": "Custom Donation",
+      "customer_id": "CPEF5PN4SRDZV1PE9SGY4MER6M",
+      "total_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "approved_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "receipt_number": "PNxF",
+      "receipt_url": "https://squareup.com/receipt/preview/PNxF1LrrHuCXyaWo78dUv0n8Vr9YY",
+      "delay_action": "CANCEL",
+      "delayed_until": "2026-06-22T13:11:49.765Z",
+      "application_details": {
+        "square_product": "ECOMMERCE_API",
+        "application_id": "sq0idp-4go8LYRYv9kpvI97_T7gQQ"
+      },
+      "version_token": "KwyfLCqnIQ3xbtzWJYQ7N83Efv1DswvbAbFrRPq4f3t6o"
+    },
+    {
+      "id": "B4EGfvUDhYk58oGBPCbCy6kWUcAZY",
+      "created_at": "2026-06-14T09:59:33.452Z",
+      "updated_at": "2026-06-14T09:59:34.135Z",
+      "amount_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "status": "FAILED",
+      "delay_duration": "PT168H",
+      "source_type": "CARD",
+      "card_details": {
+        "status": "FAILED",
+        "card": {
+          "card_brand": "MASTERCARD",
+          "last_4": "0052",
+          "exp_month": 12,
+          "exp_year": 2032,
+          "fingerprint": "sq-1-CbkOJirjTXtO3pDLku29WDnAyId-O7_Wnxl085ioWEKjFHy1VB2GcOZN9yOTP_3buQ",
+          "card_type": "CREDIT",
+          "prepaid_type": "NOT_PREPAID",
+          "bin": "552260",
+          "payment_account_reference": "5001C8MRHNFLTGM5W03V7PRW0Z31E"
+        },
+        "entry_method": "KEYED",
+        "errors": [
+          {
+            "code": "GENERIC_DECLINE",
+            "detail": "Authorization error: 'GENERIC_DECLINE'",
+            "category": "PAYMENT_METHOD_ERROR"
+          }
+        ],
+        "card_payment_timeline": {
+          "authorized_at": "2026-06-14T09:59:34.135Z"
+        }
+      },
+      "location_id": "L18DV1JW2HV7G",
+      "order_id": "jWs5oAFSH7bnKUNZVvOo7WELcG6YY",
+      "buyer_email_address": "rahulkathuria33@gmail.com",
+      "note": "Custom Donation",
+      "total_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "approved_money": {
+        "amount": 0,
+        "currency": "USD"
+      },
+      "delay_action": "CANCEL",
+      "delayed_until": "2026-06-21T09:59:33.452Z",
+      "application_details": {
+        "square_product": "ECOMMERCE_API",
+        "application_id": "sq0idp-4go8LYRYv9kpvI97_T7gQQ"
+      },
+      "version_token": "nlvCGNv6Kc2J45UiKKynnzAW11FZhoqok3IPFdHR1BG6o"
+    },
+    {
+      "id": "lEbtO4uDqxKPQEH5ii5YO62XB9CZY",
+      "created_at": "2026-06-14T09:41:04.716Z",
+      "updated_at": "2026-06-14T09:41:05.416Z",
+      "amount_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "status": "FAILED",
+      "delay_duration": "PT168H",
+      "source_type": "CARD",
+      "card_details": {
+        "status": "FAILED",
+        "card": {
+          "card_brand": "MASTERCARD",
+          "last_4": "6005",
+          "exp_month": 5,
+          "exp_year": 2033,
+          "fingerprint": "sq-1-9H4uplliXi80qOPdOulxzwBiQk8_SMxMIS9O3bUQQnqi8pn1MHuahbXfGub0Ih5SrQ",
+          "card_type": "CREDIT",
+          "prepaid_type": "NOT_PREPAID",
+          "bin": "524193",
+          "payment_account_reference": "5001AOCBHF0TCPOASI4L9RG3O8LFS"
+        },
+        "entry_method": "KEYED",
+        "cvv_status": "CVV_ACCEPTED",
+        "avs_status": "AVS_NOT_CHECKED",
+        "errors": [
+          {
+            "code": "GENERIC_DECLINE",
+            "detail": "Authorization error: 'GENERIC_DECLINE'",
+            "category": "PAYMENT_METHOD_ERROR"
+          }
+        ],
+        "statement_description": "SQ *SMG CARES INC",
+        "card_payment_timeline": {
+          "authorized_at": "2026-06-14T09:41:05.416Z"
+        }
+      },
+      "location_id": "L18DV1JW2HV7G",
+      "order_id": "tnSdARVYmg7Fmwaio4vQwSUWIrLZY",
+      "buyer_email_address": "gyanasarathi1998@gmail.com",
+      "note": "Custom Donation",
+      "total_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "approved_money": {
+        "amount": 0,
+        "currency": "USD"
+      },
+      "delay_action": "CANCEL",
+      "delayed_until": "2026-06-21T09:41:04.716Z",
+      "application_details": {
+        "square_product": "ECOMMERCE_API",
+        "application_id": "sq0idp-4go8LYRYv9kpvI97_T7gQQ"
+      },
+      "version_token": "NMMslPt41Qf0jp8AeHC8uzIsmJpJrYGIQ5aHz9wGiBd6o"
+    },
+    {
+      "id": "9Mx3p0FNlT9yxqY3MLVcYKfGlsBZY",
+      "created_at": "2026-06-14T09:40:53.829Z",
+      "updated_at": "2026-06-14T09:40:54.566Z",
+      "amount_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "status": "FAILED",
+      "delay_duration": "PT168H",
+      "source_type": "CARD",
+      "card_details": {
+        "status": "FAILED",
+        "card": {
+          "card_brand": "MASTERCARD",
+          "last_4": "6005",
+          "exp_month": 5,
+          "exp_year": 2033,
+          "fingerprint": "sq-1-9H4uplliXi80qOPdOulxzwBiQk8_SMxMIS9O3bUQQnqi8pn1MHuahbXfGub0Ih5SrQ",
+          "card_type": "CREDIT",
+          "prepaid_type": "NOT_PREPAID",
+          "bin": "524193",
+          "payment_account_reference": "5001AOCBHF0TCPOASI4L9RG3O8LFS"
+        },
+        "entry_method": "KEYED",
+        "errors": [
+          {
+            "code": "GENERIC_DECLINE",
+            "detail": "Authorization error: 'GENERIC_DECLINE'",
+            "category": "PAYMENT_METHOD_ERROR"
+          }
+        ],
+        "card_payment_timeline": {
+          "authorized_at": "2026-06-14T09:40:54.566Z"
+        }
+      },
+      "location_id": "L18DV1JW2HV7G",
+      "order_id": "ZvbPHUtTSwBv5sRFIQzPidCEbxTZY",
+      "buyer_email_address": "gyanasarathi1998@gmail.com",
+      "note": "Custom Donation",
+      "total_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "approved_money": {
+        "amount": 0,
+        "currency": "USD"
+      },
+      "delay_action": "CANCEL",
+      "delayed_until": "2026-06-21T09:40:53.829Z",
+      "application_details": {
+        "square_product": "ECOMMERCE_API",
+        "application_id": "sq0idp-4go8LYRYv9kpvI97_T7gQQ"
+      },
+      "version_token": "LcCKMMhE7MrGN3SNFen20MnHf9PedGPKgNSVKyNQMxQ6o"
+    },
+    {
+      "id": "jNmc0sjrO2bB4M5tZmvLmmn1l99YY",
+      "created_at": "2026-06-14T09:27:29.604Z",
+      "updated_at": "2026-06-14T09:27:30.221Z",
+      "amount_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "status": "FAILED",
+      "delay_duration": "PT168H",
+      "source_type": "CARD",
+      "card_details": {
+        "status": "FAILED",
+        "card": {
+          "card_brand": "VISA",
+          "last_4": "0444",
+          "exp_month": 4,
+          "exp_year": 2031,
+          "fingerprint": "sq-1-p86C5U_TkjqYO6S-pXme4oVpw_dLyuTAhCDCi54UjnESpcfho6LJwej1cLn-wVv0vw",
+          "card_type": "DEBIT",
+          "prepaid_type": "NOT_PREPAID",
+          "bin": "464951",
+          "payment_account_reference": "V0010014626101202921030593107"
+        },
+        "entry_method": "KEYED",
+        "cvv_status": "CVV_NOT_CHECKED",
+        "avs_status": "AVS_NOT_CHECKED",
+        "errors": [
+          {
+            "code": "TRANSACTION_LIMIT",
+            "detail": "Authorization error: 'TRANSACTION_LIMIT'",
+            "category": "PAYMENT_METHOD_ERROR"
+          }
+        ],
+        "statement_description": "SQ *SMG CARES INC",
+        "card_payment_timeline": {
+          "authorized_at": "2026-06-14T09:27:30.221Z"
+        }
+      },
+      "location_id": "L18DV1JW2HV7G",
+      "order_id": "VzQiKtkr9vAEEnDPwQW3EAcvuC6YY",
+      "buyer_email_address": "mughalasad449@gmail.com",
+      "note": "Custom Donation",
+      "total_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "approved_money": {
+        "amount": 0,
+        "currency": "USD"
+      },
+      "delay_action": "CANCEL",
+      "delayed_until": "2026-06-21T09:27:29.604Z",
+      "application_details": {
+        "square_product": "ECOMMERCE_API",
+        "application_id": "sq0idp-4go8LYRYv9kpvI97_T7gQQ"
+      },
+      "version_token": "BlhxTBEgAk0HIUKm1TTaUex7B12L5mK4GKIGLHGCKMD6o"
+    },
+    {
+      "id": "dqCaIsGEq5ES8hnw2tBsGNGtGZFZY",
+      "created_at": "2026-06-14T08:15:25.371Z",
+      "updated_at": "2026-06-14T09:53:10.878Z",
+      "amount_money": {
+        "amount": 100,
+        "currency": "USD"
+      },
+      "refunded_money": {
+        "amount": 100,
+        "currency": "USD"
+      },
+      "status": "COMPLETED",
+      "delay_duration": "PT168H",
+      "source_type": "CARD",
+      "card_details": {
+        "status": "CAPTURED",
+        "card": {
+          "card_brand": "VISA",
+          "last_4": "0444",
+          "exp_month": 4,
+          "exp_year": 2031,
+          "fingerprint": "sq-1-p86C5U_TkjqYO6S-pXme4oVpw_dLyuTAhCDCi54UjnESpcfho6LJwej1cLn-wVv0vw",
+          "card_type": "DEBIT",
+          "prepaid_type": "NOT_PREPAID",
+          "bin": "464951",
+          "payment_account_reference": "V0010014626101202921030593107"
+        },
+        "entry_method": "KEYED",
+        "cvv_status": "CVV_ACCEPTED",
+        "avs_status": "AVS_NOT_CHECKED",
+        "auth_result_code": "477254",
+        "statement_description": "SQ *SMG CARES INC",
+        "card_payment_timeline": {
+          "authorized_at": "2026-06-14T08:15:26.396Z",
+          "captured_at": "2026-06-14T08:15:26.778Z"
+        }
+      },
+      "location_id": "L18DV1JW2HV7G",
+      "order_id": "ZDxtJj7gM59mxPncWzbyKlWzbLSZY",
+      "refund_ids": [
+        "dqCaIsGEq5ES8hnw2tBsGNGtGZFZY_dFv29QpRtylpKptfikfvMeSQqD4QnZ8yz2N1lxkkbNB"
+      ],
+      "risk_evaluation": {
+        "created_at": "2026-06-14T08:17:28.383Z",
+        "risk_level": "HIGH"
+      },
+      "processing_fee": [
+        {
+          "effective_at": "2026-06-14T10:15:27.000Z",
+          "type": "INITIAL",
+          "amount_money": {
+            "amount": 35,
+            "currency": "USD"
+          }
+        },
+        {
+          "effective_at": "2026-06-14T10:15:27.000Z",
+          "type": "ADJUSTMENT",
+          "amount_money": {
+            "amount": -35,
+            "currency": "USD"
+          }
+        }
+      ],
+      "buyer_email_address": "mughalasad449@gmail.com",
+      "note": "Custom Donation",
+      "customer_id": "9JJXQDSVNY3XMM1THEEAR8M9DW",
+      "total_money": {
+        "amount": 100,
+        "currency": "USD"
+      },
+      "approved_money": {
+        "amount": 100,
+        "currency": "USD"
+      },
+      "receipt_number": "dqCa",
+      "receipt_url": "https://squareup.com/receipt/preview/dqCaIsGEq5ES8hnw2tBsGNGtGZFZY",
+      "delay_action": "CANCEL",
+      "delayed_until": "2026-06-21T08:15:25.371Z",
+      "application_details": {
+        "square_product": "ECOMMERCE_API",
+        "application_id": "sq0idp-4go8LYRYv9kpvI97_T7gQQ"
+      },
+      "version_token": "j6CfwG02fiKZDgtUZa8ze4FlFR66gbkXbR6O5vXh18S6o"
+    },
+    {
+      "id": "9ucC25Od3BqISLSXzHvSghQlfSdZY",
+      "created_at": "2026-06-13T15:07:15.424Z",
+      "updated_at": "2026-06-13T15:07:15.624Z",
+      "amount_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "status": "FAILED",
+      "delay_duration": "PT168H",
+      "source_type": "CARD",
+      "card_details": {
+        "status": "FAILED",
+        "card": {
+          "card_brand": "MASTERCARD",
+          "last_4": "1780",
+          "exp_month": 6,
+          "exp_year": 2030,
+          "fingerprint": "sq-1-hO1Dzg5U-JPfBpvf7DzZRGzXy1zNgu8pwDe8J-4IIVf6b_kpvuQPbhAfB_x7ODSokw",
+          "card_type": "DEBIT",
+          "prepaid_type": "NOT_PREPAID",
+          "bin": "536619"
+        },
+        "entry_method": "KEYED",
+        "errors": [
+          {
+            "code": "GENERIC_DECLINE",
+            "detail": "Authorization error: 'GENERIC_DECLINE'",
+            "category": "PAYMENT_METHOD_ERROR"
+          }
+        ],
+        "card_payment_timeline": {
+          "authorized_at": "2026-06-13T15:07:15.624Z"
+        }
+      },
+      "location_id": "L18DV1JW2HV7G",
+      "order_id": "bgrFsSxoqI5TuBj66grnPOkPS9IZY",
+      "buyer_email_address": "mughalasad449@gmail.com",
+      "note": "Custom Donation",
+      "total_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "approved_money": {
+        "amount": 0,
+        "currency": "USD"
+      },
+      "delay_action": "CANCEL",
+      "delayed_until": "2026-06-20T15:07:15.424Z",
+      "application_details": {
+        "square_product": "ECOMMERCE_API",
+        "application_id": "sq0idp-4go8LYRYv9kpvI97_T7gQQ"
+      },
+      "version_token": "zNwb5yjNNOA3NGIVLLcWG3C5NYuUDvOeft8nJ6WiKLR6o"
+    },
+    {
+      "id": "X74sqEIMGPuwmYQ8cpTuTWJs6IcZY",
+      "created_at": "2026-06-13T15:07:03.687Z",
+      "updated_at": "2026-06-13T15:07:03.722Z",
+      "amount_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "status": "FAILED",
+      "delay_duration": "PT168H",
+      "source_type": "CARD",
+      "card_details": {
+        "status": "FAILED",
+        "card": {
+          "card_brand": "VISA",
+          "last_4": "0444",
+          "exp_month": 4,
+          "exp_year": 2031,
+          "fingerprint": "sq-1-p86C5U_TkjqYO6S-pXme4oVpw_dLyuTAhCDCi54UjnESpcfho6LJwej1cLn-wVv0vw",
+          "card_type": "DEBIT",
+          "prepaid_type": "NOT_PREPAID",
+          "bin": "464951"
+        },
+        "entry_method": "KEYED",
+        "errors": [
+          {
+            "code": "GENERIC_DECLINE",
+            "detail": "Authorization error: 'GENERIC_DECLINE'",
+            "category": "PAYMENT_METHOD_ERROR"
+          }
+        ],
+        "card_payment_timeline": {
+          "authorized_at": "2026-06-13T15:07:03.722Z"
+        }
+      },
+      "location_id": "L18DV1JW2HV7G",
+      "order_id": "30uhKQQuoPtB08iPG7W7RyJZJLNZY",
+      "buyer_email_address": "mughalasad449@gmail.com",
+      "note": "Custom Donation",
+      "total_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "approved_money": {
+        "amount": 0,
+        "currency": "USD"
+      },
+      "delay_action": "CANCEL",
+      "delayed_until": "2026-06-20T15:07:03.687Z",
+      "application_details": {
+        "square_product": "ECOMMERCE_API",
+        "application_id": "sq0idp-4go8LYRYv9kpvI97_T7gQQ"
+      },
+      "version_token": "hGta56X2v0cmiVzTRd1YjfRWZjRiqg4nsnIdqOUDXr06o"
+    },
+    {
+      "id": "HnILky5FATx5DEzJkpZGlPIWu87YY",
+      "created_at": "2026-06-13T15:06:46.752Z",
+      "updated_at": "2026-06-13T15:06:46.788Z",
+      "amount_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "status": "FAILED",
+      "delay_duration": "PT168H",
+      "source_type": "CARD",
+      "card_details": {
+        "status": "FAILED",
+        "card": {
+          "card_brand": "VISA",
+          "last_4": "0444",
+          "exp_month": 4,
+          "exp_year": 2031,
+          "fingerprint": "sq-1-p86C5U_TkjqYO6S-pXme4oVpw_dLyuTAhCDCi54UjnESpcfho6LJwej1cLn-wVv0vw",
+          "card_type": "DEBIT",
+          "prepaid_type": "NOT_PREPAID",
+          "bin": "464951"
+        },
+        "entry_method": "KEYED",
+        "errors": [
+          {
+            "code": "GENERIC_DECLINE",
+            "detail": "Authorization error: 'GENERIC_DECLINE'",
+            "category": "PAYMENT_METHOD_ERROR"
+          }
+        ],
+        "card_payment_timeline": {
+          "authorized_at": "2026-06-13T15:06:46.788Z"
+        }
+      },
+      "location_id": "L18DV1JW2HV7G",
+      "order_id": "NtVxADpr3wbv64Nr6vORGP5vmjKZY",
+      "buyer_email_address": "mughalasad449@gmail.com",
+      "note": "Custom Donation",
+      "total_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "approved_money": {
+        "amount": 0,
+        "currency": "USD"
+      },
+      "delay_action": "CANCEL",
+      "delayed_until": "2026-06-20T15:06:46.752Z",
+      "application_details": {
+        "square_product": "ECOMMERCE_API",
+        "application_id": "sq0idp-4go8LYRYv9kpvI97_T7gQQ"
+      },
+      "version_token": "VwdcejMd4GGnJaP6NiyPbkFPH5L1q4yLBc5dEbAFdfl6o"
+    },
+    {
+      "id": "9UpVR5MGvm12EQMqtLUPLTUszOLZY",
+      "created_at": "2026-06-13T13:56:16.918Z",
+      "updated_at": "2026-06-13T13:56:17.098Z",
+      "amount_money": {
+        "amount": 72500,
+        "currency": "USD"
+      },
+      "status": "FAILED",
+      "delay_duration": "PT168H",
+      "source_type": "CARD",
+      "card_details": {
+        "status": "FAILED",
+        "card": {
+          "card_brand": "VISA",
+          "last_4": "0444",
+          "exp_month": 4,
+          "exp_year": 2031,
+          "fingerprint": "sq-1-p86C5U_TkjqYO6S-pXme4oVpw_dLyuTAhCDCi54UjnESpcfho6LJwej1cLn-wVv0vw",
+          "card_type": "DEBIT",
+          "prepaid_type": "NOT_PREPAID",
+          "bin": "464951",
+          "payment_account_reference": "V0010014626101202921030593107"
+        },
+        "entry_method": "KEYED",
+        "cvv_status": "CVV_ACCEPTED",
+        "avs_status": "AVS_NOT_CHECKED",
+        "errors": [
+          {
+            "code": "GENERIC_DECLINE",
+            "detail": "Authorization error: 'GENERIC_DECLINE'",
+            "category": "PAYMENT_METHOD_ERROR"
+          }
+        ],
+        "statement_description": "SQ *SMG CARES INC",
+        "card_payment_timeline": {
+          "authorized_at": "2026-06-13T13:56:17.098Z"
+        }
+      },
+      "location_id": "L18DV1JW2HV7G",
+      "order_id": "ljsaeag8u7M2jHlmPVzMxwJUNkRZY",
+      "buyer_email_address": "mughalasad449@gmail.com",
+      "note": "Individual Player",
+      "total_money": {
+        "amount": 72500,
+        "currency": "USD"
+      },
+      "approved_money": {
+        "amount": 0,
+        "currency": "USD"
+      },
+      "delay_action": "CANCEL",
+      "delayed_until": "2026-06-20T13:56:16.918Z",
+      "application_details": {
+        "square_product": "ECOMMERCE_API",
+        "application_id": "sq0idp-4go8LYRYv9kpvI97_T7gQQ"
+      },
+      "version_token": "zwf93jomnLwR8O0J8KOS7kvtwzNSbfAEdUFGSJl82ld6o"
+    },
+    {
+      "id": "7774RY1wa4eIHu3wfOKFVjKOgnbZY",
+      "created_at": "2026-06-13T13:54:43.166Z",
+      "updated_at": "2026-06-13T13:54:43.257Z",
+      "amount_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "status": "FAILED",
+      "delay_duration": "PT168H",
+      "source_type": "CARD",
+      "card_details": {
+        "status": "FAILED",
+        "card": {
+          "card_brand": "VISA",
+          "last_4": "1111",
+          "exp_month": 4,
+          "exp_year": 2031,
+          "fingerprint": "sq-1-tT5Nh0DzH3yUagWn30yonRxERsejM_miwM4xrIYpCJy_GXspvJIWNhBtrnfTXareaQ",
+          "card_type": "CREDIT",
+          "prepaid_type": "NOT_PREPAID",
+          "bin": "411111"
+        },
+        "entry_method": "KEYED",
+        "cvv_status": "CVV_NOT_CHECKED",
+        "avs_status": "AVS_NOT_CHECKED",
+        "errors": [
+          {
+            "code": "PAN_FAILURE",
+            "detail": "Authorization error: 'PAN_FAILURE'",
+            "category": "PAYMENT_METHOD_ERROR"
+          }
+        ],
+        "statement_description": "SQ *SMG CARES INC",
+        "card_payment_timeline": {
+          "authorized_at": "2026-06-13T13:54:43.257Z"
+        }
+      },
+      "location_id": "L18DV1JW2HV7G",
+      "order_id": "tV7uyIdCXmZpEkCAwdfJiCpRgIeZY",
+      "buyer_email_address": "mughalasad449@gmail.com",
+      "note": "Custom Donation",
+      "total_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "approved_money": {
+        "amount": 0,
+        "currency": "USD"
+      },
+      "delay_action": "CANCEL",
+      "delayed_until": "2026-06-20T13:54:43.166Z",
+      "application_details": {
+        "square_product": "ECOMMERCE_API",
+        "application_id": "sq0idp-4go8LYRYv9kpvI97_T7gQQ"
+      },
+      "version_token": "cxNmIHvG0VysmyJSR9EFtM1xGg421CoQaQ53wo4sZc45o"
+    },
+    {
+      "id": "vP6DsbYOgHaEvHysN7NfZlIfiObZY",
+      "created_at": "2026-06-13T13:53:59.624Z",
+      "updated_at": "2026-06-13T13:54:00.247Z",
+      "amount_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "status": "FAILED",
+      "delay_duration": "PT168H",
+      "source_type": "CARD",
+      "card_details": {
+        "status": "FAILED",
+        "card": {
+          "card_brand": "VISA",
+          "last_4": "0444",
+          "exp_month": 4,
+          "exp_year": 2031,
+          "fingerprint": "sq-1-p86C5U_TkjqYO6S-pXme4oVpw_dLyuTAhCDCi54UjnESpcfho6LJwej1cLn-wVv0vw",
+          "card_type": "DEBIT",
+          "prepaid_type": "NOT_PREPAID",
+          "bin": "464951",
+          "payment_account_reference": "V0010014626101202921030593107"
+        },
+        "entry_method": "KEYED",
+        "cvv_status": "CVV_NOT_CHECKED",
+        "avs_status": "AVS_NOT_CHECKED",
+        "errors": [
+          {
+            "code": "TRANSACTION_LIMIT",
+            "detail": "Authorization error: 'TRANSACTION_LIMIT'",
+            "category": "PAYMENT_METHOD_ERROR"
+          }
+        ],
+        "statement_description": "SQ *SMG CARES INC",
+        "card_payment_timeline": {
+          "authorized_at": "2026-06-13T13:54:00.247Z"
+        }
+      },
+      "location_id": "L18DV1JW2HV7G",
+      "order_id": "BxeRBKAh6n2q6xICdgYIF0GIGDQZY",
+      "buyer_email_address": "mughalasad449@gmail.com",
+      "note": "Custom Donation",
+      "total_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "approved_money": {
+        "amount": 0,
+        "currency": "USD"
+      },
+      "delay_action": "CANCEL",
+      "delayed_until": "2026-06-20T13:53:59.624Z",
+      "application_details": {
+        "square_product": "ECOMMERCE_API",
+        "application_id": "sq0idp-4go8LYRYv9kpvI97_T7gQQ"
+      },
+      "version_token": "qevxAdOtQ0KJCoKQLLC8EzoGGRkxuzFA00InUFbNDpF6o"
+    },
+    {
+      "id": "lOgFEF6AZpDsSK1Sym57hveAcyZZY",
+      "created_at": "2026-06-13T12:34:25.460Z",
+      "updated_at": "2026-06-13T12:34:25.495Z",
+      "amount_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "status": "FAILED",
+      "delay_duration": "PT168H",
+      "source_type": "CARD",
+      "card_details": {
+        "status": "FAILED",
+        "card": {
+          "card_brand": "VISA",
+          "last_4": "1111",
+          "exp_month": 12,
+          "exp_year": 2030,
+          "fingerprint": "sq-1-tT5Nh0DzH3yUagWn30yonRxERsejM_miwM4xrIYpCJy_GXspvJIWNhBtrnfTXareaQ",
+          "card_type": "CREDIT",
+          "prepaid_type": "NOT_PREPAID",
+          "bin": "411111"
+        },
+        "entry_method": "KEYED",
+        "errors": [
+          {
+            "code": "GENERIC_DECLINE",
+            "detail": "Authorization error: 'GENERIC_DECLINE'",
+            "category": "PAYMENT_METHOD_ERROR"
+          }
+        ],
+        "card_payment_timeline": {
+          "authorized_at": "2026-06-13T12:34:25.495Z"
+        }
+      },
+      "location_id": "L18DV1JW2HV7G",
+      "order_id": "J7VFmWQgVVZYpPATjigJPjuMaS6YY",
+      "buyer_email_address": "mughalasad449@gmail.com",
+      "note": "Registration: Custom Donation",
+      "total_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "approved_money": {
+        "amount": 0,
+        "currency": "USD"
+      },
+      "delay_action": "CANCEL",
+      "delayed_until": "2026-06-20T12:34:25.460Z",
+      "application_details": {
+        "square_product": "ECOMMERCE_API",
+        "application_id": "sq0idp-4go8LYRYv9kpvI97_T7gQQ"
+      },
+      "version_token": "Ay3It03ai2lhgE03v2ZkklE89tQLtyCQ8lBDBTiCXvy6o"
+    },
+    {
+      "id": "xEOOxKdOpE05abBFrPNvQsRB4OUZY",
+      "created_at": "2026-06-13T12:06:30.165Z",
+      "updated_at": "2026-06-13T12:06:30.199Z",
+      "amount_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "status": "FAILED",
+      "delay_duration": "PT168H",
+      "source_type": "CARD",
+      "card_details": {
+        "status": "FAILED",
+        "card": {
+          "card_brand": "VISA",
+          "last_4": "1111",
+          "exp_month": 12,
+          "exp_year": 2030,
+          "fingerprint": "sq-1-tT5Nh0DzH3yUagWn30yonRxERsejM_miwM4xrIYpCJy_GXspvJIWNhBtrnfTXareaQ",
+          "card_type": "CREDIT",
+          "prepaid_type": "NOT_PREPAID",
+          "bin": "411111"
+        },
+        "entry_method": "KEYED",
+        "errors": [
+          {
+            "code": "GENERIC_DECLINE",
+            "detail": "Authorization error: 'GENERIC_DECLINE'",
+            "category": "PAYMENT_METHOD_ERROR"
+          }
+        ],
+        "card_payment_timeline": {
+          "authorized_at": "2026-06-13T12:06:30.199Z"
+        }
+      },
+      "location_id": "L18DV1JW2HV7G",
+      "order_id": "hVwXKeA6FoZBAfcsCcT5XR0l1NfZY",
+      "buyer_email_address": "mughalasad449@gmail.com",
+      "note": "Registration: Custom Donation",
+      "total_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "approved_money": {
+        "amount": 0,
+        "currency": "USD"
+      },
+      "delay_action": "CANCEL",
+      "delayed_until": "2026-06-20T12:06:30.165Z",
+      "application_details": {
+        "square_product": "ECOMMERCE_API",
+        "application_id": "sq0idp-4go8LYRYv9kpvI97_T7gQQ"
+      },
+      "version_token": "TnX36NswslX9kirbU2DXaZCt64xkTkWoih06UZunFjs6o"
+    },
+    {
+      "id": "R6Fw5iEuPAGaJRAuvyHn585gnhAZY",
+      "created_at": "2026-06-13T12:00:29.856Z",
+      "updated_at": "2026-06-13T12:00:29.891Z",
+      "amount_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "status": "FAILED",
+      "delay_duration": "PT168H",
+      "source_type": "CARD",
+      "card_details": {
+        "status": "FAILED",
+        "card": {
+          "card_brand": "VISA",
+          "last_4": "1111",
+          "exp_month": 12,
+          "exp_year": 2030,
+          "fingerprint": "sq-1-tT5Nh0DzH3yUagWn30yonRxERsejM_miwM4xrIYpCJy_GXspvJIWNhBtrnfTXareaQ",
+          "card_type": "CREDIT",
+          "prepaid_type": "NOT_PREPAID",
+          "bin": "411111"
+        },
+        "entry_method": "KEYED",
+        "errors": [
+          {
+            "code": "GENERIC_DECLINE",
+            "detail": "Authorization error: 'GENERIC_DECLINE'",
+            "category": "PAYMENT_METHOD_ERROR"
+          }
+        ],
+        "card_payment_timeline": {
+          "authorized_at": "2026-06-13T12:00:29.891Z"
+        }
+      },
+      "location_id": "L18DV1JW2HV7G",
+      "order_id": "vku0GwpTM1oiWPIs1vn53hhcsoPZY",
+      "buyer_email_address": "mughalasad449@gmail.com",
+      "note": "Registration: Custom Donation",
+      "total_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "approved_money": {
+        "amount": 0,
+        "currency": "USD"
+      },
+      "delay_action": "CANCEL",
+      "delayed_until": "2026-06-20T12:00:29.856Z",
+      "application_details": {
+        "square_product": "ECOMMERCE_API",
+        "application_id": "sq0idp-4go8LYRYv9kpvI97_T7gQQ"
+      },
+      "version_token": "dvPca5ppaiaMK30GlcrflSS4JNJFWKkiSJsx17aDuXh6o"
+    },
+    {
+      "id": "VgDQSoym0f0pF9RU1kFbDVsYMr7YY",
+      "created_at": "2026-06-13T03:42:08.521Z",
+      "updated_at": "2026-06-13T03:42:08.625Z",
+      "amount_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "status": "FAILED",
+      "delay_duration": "PT168H",
+      "source_type": "CARD",
+      "card_details": {
+        "status": "FAILED",
+        "card": {
+          "card_brand": "VISA",
+          "last_4": "1111",
+          "exp_month": 11,
+          "exp_year": 2030,
+          "fingerprint": "sq-1-tT5Nh0DzH3yUagWn30yonRxERsejM_miwM4xrIYpCJy_GXspvJIWNhBtrnfTXareaQ",
+          "card_type": "CREDIT",
+          "prepaid_type": "NOT_PREPAID",
+          "bin": "411111"
+        },
+        "entry_method": "KEYED",
+        "cvv_status": "CVV_NOT_CHECKED",
+        "avs_status": "AVS_NOT_CHECKED",
+        "errors": [
+          {
+            "code": "PAN_FAILURE",
+            "detail": "Authorization error: 'PAN_FAILURE'",
+            "category": "PAYMENT_METHOD_ERROR"
+          }
+        ],
+        "statement_description": "SQ *SMG CARES INC",
+        "card_payment_timeline": {
+          "authorized_at": "2026-06-13T03:42:08.625Z"
+        }
+      },
+      "location_id": "L18DV1JW2HV7G",
+      "order_id": "NT6ARGnvVMo9j4OjjJSfO5Umq2QZY",
+      "buyer_email_address": "maham@gmail.com",
+      "note": "Registration: Custom Donation",
+      "total_money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "approved_money": {
+        "amount": 0,
+        "currency": "USD"
+      },
+      "delay_action": "CANCEL",
+      "delayed_until": "2026-06-20T03:42:08.521Z",
+      "application_details": {
+        "square_product": "ECOMMERCE_API",
+        "application_id": "sq0idp-4go8LYRYv9kpvI97_T7gQQ"
+      },
+      "version_token": "HAYLdGEdwkwcqVmjD5OCA8BWapl3mNKCGDqBNvKtRGL6o"
+    },
+    {
+      "id": "zJ0gBI5JNygad7RgkzuW4F8VWyLZY",
+      "created_at": "2026-05-23T06:13:02.851Z",
+      "updated_at": "2026-05-23T06:13:03.090Z",
+      "amount_money": {
+        "amount": 72500,
+        "currency": "USD"
+      },
+      "status": "FAILED",
+      "delay_duration": "PT168H",
+      "source_type": "CARD",
+      "card_details": {
+        "status": "FAILED",
+        "card": {
+          "card_brand": "VISA",
+          "last_4": "1111",
+          "exp_month": 12,
+          "exp_year": 2030,
+          "fingerprint": "sq-1-tT5Nh0DzH3yUagWn30yonRxERsejM_miwM4xrIYpCJy_GXspvJIWNhBtrnfTXareaQ",
+          "card_type": "CREDIT",
+          "prepaid_type": "NOT_PREPAID",
+          "bin": "411111"
+        },
+        "entry_method": "KEYED",
+        "cvv_status": "CVV_NOT_CHECKED",
+        "avs_status": "AVS_NOT_CHECKED",
+        "errors": [
+          {
+            "code": "PAN_FAILURE",
+            "detail": "Authorization error: 'PAN_FAILURE'",
+            "category": "PAYMENT_METHOD_ERROR"
+          }
+        ],
+        "statement_description": "SQ *SMG CARES INC",
+        "card_payment_timeline": {
+          "authorized_at": "2026-05-23T06:13:03.090Z"
+        }
+      },
+      "location_id": "L18DV1JW2HV7G",
+      "order_id": "lVtu8v9nalvSIdMbjbDIjUF5yxdZY",
+      "buyer_email_address": "mahamali.khan2345@gmail.com",
+      "note": "Registration: Individual Player",
+      "total_money": {
+        "amount": 72500,
+        "currency": "USD"
+      },
+      "approved_money": {
+        "amount": 0,
+        "currency": "USD"
+      },
+      "delay_action": "CANCEL",
+      "delayed_until": "2026-05-30T06:13:02.851Z",
+      "application_details": {
+        "square_product": "ECOMMERCE_API",
+        "application_id": "sq0idp-4go8LYRYv9kpvI97_T7gQQ"
+      },
+      "version_token": "Cdvv56U66m7JCaU5N4rWatK2AV7K7ghofylsm8RoL3q6o"
+    },
+    {
+      "id": "9K6KuFAdVgtG8TBK0eK9X75Qz3HZY",
+      "created_at": "2026-04-29T18:07:54.452Z",
+      "updated_at": "2026-04-29T18:07:58.498Z",
+      "amount_money": {
+        "amount": 100,
+        "currency": "USD"
+      },
+      "status": "COMPLETED",
+      "delay_duration": "PT168H",
+      "source_type": "CARD",
+      "card_details": {
+        "status": "CAPTURED",
+        "card": {
+          "card_brand": "MASTERCARD",
+          "last_4": "0742",
+          "exp_month": 5,
+          "exp_year": 2028,
+          "fingerprint": "sq-1-BYEYOCmACr6ATNZLNF-DgBFy3GlfdPWD5MJ39K1Px73-ee1-ZN6rjcFT1x6EXfV0yg",
+          "card_type": "CREDIT",
+          "prepaid_type": "NOT_PREPAID",
+          "bin": "558958",
+          "payment_account_reference": "5001620BYAD1QI4QQN8DDIF7MZ3OI"
+        },
+        "entry_method": "KEYED",
+        "cvv_status": "CVV_ACCEPTED",
+        "avs_status": "AVS_ACCEPTED",
+        "auth_result_code": "02651Q",
+        "statement_description": "SQ *SMG CARES INC",
+        "card_payment_timeline": {
+          "authorized_at": "2026-04-29T18:07:55.138Z",
+          "captured_at": "2026-04-29T18:07:55.781Z"
+        }
+      },
+      "location_id": "L18DV1JW2HV7G",
+      "order_id": "7meRsc0XAwVi94GwmoEDmB2mLkIZY",
+      "risk_evaluation": {
+        "created_at": "2026-04-29T18:09:57.966Z",
+        "risk_level": "NORMAL"
+      },
+      "processing_fee": [
+        {
+          "effective_at": "2026-04-29T20:07:57.000Z",
+          "type": "INITIAL",
+          "amount_money": {
+            "amount": 33,
+            "currency": "USD"
+          }
+        },
+        {
+          "effective_at": "2026-04-29T20:07:57.000Z",
+          "type": "ADJUSTMENT",
+          "amount_money": {
+            "amount": -33,
+            "currency": "USD"
+          }
+        }
+      ],
+      "customer_id": "CPEF5PN4SRDZV1PE9SGY4MER6M",
+      "total_money": {
+        "amount": 100,
+        "currency": "USD"
+      },
+      "approved_money": {
+        "amount": 100,
+        "currency": "USD"
+      },
+      "receipt_number": "9K6K",
+      "receipt_url": "https://squareup.com/receipt/preview/9K6KuFAdVgtG8TBK0eK9X75Qz3HZY",
+      "delay_action": "CANCEL",
+      "delayed_until": "2026-05-06T18:07:54.452Z",
+      "application_details": {
+        "square_product": "ECOMMERCE_API",
+        "application_id": "sq0idp-GEhEWNU1Yq-rgXvNm7wzbg"
+      },
+      "version_token": "YtBjKtZiEmOtRs3YY0Y0Q3kwVo0ZWaKgl13YnABa3Ji6o"
+    }
+  ]
+}
