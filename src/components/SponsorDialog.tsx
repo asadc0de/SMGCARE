@@ -41,8 +41,11 @@ export function SponsorDialog({ open, onOpenChange, sponsor }: { open: boolean; 
       setPaymentMethod("card");
       setPaymentSuccess(false);
       setPaymentError(null);
+      if (cardRef.current) {
+        try { cardRef.current.destroy(); } catch (_) { /* already destroyed */ }
+        cardRef.current = null;
+      }
       setCard(null);
-      cardRef.current = null;
     }
   }, [open]);
 
@@ -102,6 +105,7 @@ export function SponsorDialog({ open, onOpenChange, sponsor }: { open: boolean; 
       if (cardRef.current) {
         cardRef.current.destroy();
         cardRef.current = null;
+        setCard(null);
       }
     };
   }, [formStep, paymentSuccess, paymentMethod]);

@@ -352,6 +352,7 @@ const GolfRegister = () => {
         if (cardRef.current) {
           cardRef.current.destroy();
           cardRef.current = null;
+          setCard(null);
         }
       };
     }

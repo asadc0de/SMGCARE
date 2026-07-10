@@ -45,6 +45,11 @@ export function CustomDonationModal({ open, onOpenChange }: { open: boolean; onO
       setAmountError("");
       setPaymentMethod("card");
       setFormData({ name: "", email: "", phone: "", address: "", amount: "" });
+      if (cardRef.current) {
+        try { cardRef.current.destroy(); } catch (_) { /* already destroyed */ }
+        cardRef.current = null;
+      }
+      setCard(null);
     }
   }, [open]);
 
