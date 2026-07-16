@@ -168,7 +168,6 @@ app.post("/api/payments/clover", async (req, res) => {
         currency: "usd",
         source: token,
         description: packageName ? `Registration: ${packageName}` : "SMG Cares Payment",
-        external_reference_id: golferDetails ? JSON.stringify(golferDetails).slice(0, 40) : undefined,
       }),
     });
 

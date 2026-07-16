@@ -70,9 +70,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         currency: "usd",
         source: token,
         description: packageName ? `Registration: ${packageName}` : "SMG Cares Payment",
-        external_reference_id: golferDetails
-          ? JSON.stringify(golferDetails).slice(0, 40)
-          : undefined,
       }),
     });
 
