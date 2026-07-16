@@ -131,3 +131,9 @@
 @media (min-width: 1522px) {
   .hero-section { min-height: 67vh !important; }
 }
+
+/* Hide Google reCAPTCHA badge injected by Clover SDK */
+.grecaptcha-badge {
+  visibility: hidden !important;
+}
+

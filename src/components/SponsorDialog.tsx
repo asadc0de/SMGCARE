@@ -22,9 +22,9 @@ export function SponsorDialog({ open, onOpenChange, sponsor }: { open: boolean; 
   const [formStep, setFormStep] = useState(1);
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", address: "" });
   const [paymentMethod, setPaymentMethod] = useState<"card" | "check">("card");
-  const [payments, setPayments] = useState<any>(null);
-  const [card, setCard] = useState<any>(null);
-  const cardRef = useRef<any>(null);
+  const [cardReady, setCardReady] = useState(false);
+  const cloverRef = useRef<any>(null);
+  const cardElementsRef = useRef<any>(null);
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
@@ -41,74 +41,97 @@ export function SponsorDialog({ open, onOpenChange, sponsor }: { open: boolean; 
       setPaymentMethod("card");
       setPaymentSuccess(false);
       setPaymentError(null);
-      if (cardRef.current) {
-        try { cardRef.current.destroy(); } catch (_) { /* already destroyed */ }
-        cardRef.current = null;
-      }
-      setCard(null);
+      cloverRef.current = null;
+      cardElementsRef.current = null;
+      setCardReady(false);
     }
   }, [open]);
 
-  // ── Square init — only when card is selected ──────────────────────────────
+  // ── Clover init — only when card is selected ───────────────────────────────────
   useEffect(() => {
     if (formStep !== 2 || paymentSuccess || paymentMethod !== "card") return;
-    if (card) return;
+    if (cardElementsRef.current) return;
 
-    const appId = import.meta.env.VITE_SQUARE_APP_ID;
-    const locationId = import.meta.env.VITE_SQUARE_LOCATION_ID;
+    const publicToken = import.meta.env.VITE_CLOVER_PUBLIC_TOKEN;
+    const merchantId = import.meta.env.VITE_CLOVER_MERCHANT_ID;
+    const isSandbox = import.meta.env.VITE_CLOVER_ENV !== "production";
 
-    if (
-      !appId || !locationId ||
-      appId === "YOUR_SQUARE_APP_ID" ||
-      locationId === "YOUR_SQUARE_LOCATION_ID" ||
-      appId.includes("YOUR_") ||
-      locationId.includes("YOUR_")
-    ) {
-      setPaymentError("Square Payment is not configured. Please define VITE_SQUARE_APP_ID and VITE_SQUARE_LOCATION_ID in your .env file.");
+    if (!publicToken || !merchantId) {
+      setPaymentError("Clover Payment is not configured. Please define VITE_CLOVER_PUBLIC_TOKEN and VITE_CLOVER_MERCHANT_ID in your .env file.");
       return;
     }
 
-    const isSandbox = appId.startsWith("sandbox-");
     const scriptUrl = isSandbox
-      ? "https://sandbox.web.squarecdn.com/v1/square.js"
-      : "https://web.squarecdn.com/v1/square.js";
+      ? "https://checkout.sandbox.dev.clover.com/sdk.js"
+      : "https://checkout.clover.com/sdk.js";
 
-    const initializeSquare = async () => {
+    const initializeClover = () => {
       try {
-        if (!(window as any).Square) return;
-        const sqPayments = (window as any).Square.payments(appId, locationId);
-        setPayments(sqPayments);
-        const cardObj = await sqPayments.card();
-        const container = document.getElementById("square-card-container-sponsor");
-        if (!container) return;
-        await cardObj.attach("#square-card-container-sponsor");
-        cardRef.current = cardObj;
-        setCard(cardObj);
+        if (!(window as any).Clover) return;
+        const clover = new (window as any).Clover(publicToken, { merchantId });
+        const elements = clover.elements();
+
+        const cloverStyles = {
+          base: {
+            color: '#0f172a',
+            fontFamily: 'Inter, sans-serif',
+            fontSize: '14px',
+            '::placeholder': {
+              color: '#94a3b8'
+            }
+          }
+        };
+
+        const cardNumber = elements.create('CARD_NUMBER', cloverStyles);
+        const cardDate = elements.create('CARD_DATE', cloverStyles);
+        const cardCvv = elements.create('CARD_CVV', cloverStyles);
+        const cardPostalCode = elements.create('CARD_POSTAL_CODE', cloverStyles);
+
+        if (!document.getElementById('clover-card-number-sponsor')) return;
+
+        cardNumber.mount('#clover-card-number-sponsor');
+        cardDate.mount('#clover-card-date-sponsor');
+        cardCvv.mount('#clover-card-cvv-sponsor');
+        cardPostalCode.mount('#clover-card-postal-code-sponsor');
+
+        cloverRef.current = clover;
+        cardElementsRef.current = { cardNumber, cardDate, cardCvv, cardPostalCode };
+        setCardReady(true);
       } catch (e: any) {
-        console.error("Square initialization failed:", e);
+        console.error("Clover initialization failed:", e);
         setPaymentError(e.message || "Failed to initialize payment form. Please refresh and try again.");
       }
     };
 
-    const existingScript = document.getElementById("square-js");
+    const existingScript = document.getElementById('clover-js');
     if (existingScript) {
-      initializeSquare();
+      initializeClover();
     } else {
       const script = document.createElement("script");
-      script.id = "square-js";
+      script.id = 'clover-js';
       script.src = scriptUrl;
-      script.onload = () => initializeSquare();
+      script.onload = () => initializeClover();
       document.body.appendChild(script);
     }
 
     return () => {
-      if (cardRef.current) {
-        cardRef.current.destroy();
-        cardRef.current = null;
-        setCard(null);
-      }
+      cloverRef.current = null;
+      cardElementsRef.current = null;
+      setCardReady(false);
     };
   }, [formStep, paymentSuccess, paymentMethod]);
+
+  useEffect(() => {
+    if (paymentSuccess) {
+      // Clover's iframe SDK doesn't expose an unmount/destroy method, and can
+      // leave its injected footer/branding elements in the DOM after our
+      // container unmounts. Manually sweep them out once payment succeeds.
+      document.querySelectorAll('.clover-footer').forEach((el) => el.remove());
+      // Also remove any now-orphaned Clover iframe elements that may not have
+      // been cleaned up by React unmounting their parent container.
+      document.querySelectorAll('iframe[src*="clover.com"]').forEach((el) => el.remove());
+    }
+  }, [paymentSuccess]);
 
   // ── Send confirmation email (card) ────────────────────────────────────────
   const sendEmail = async () => {
@@ -157,7 +180,7 @@ within 10 calendar days.
 
   // ── Card payment handler ──────────────────────────────────────────────────
   const handlePayment = async () => {
-    if (!card) return;
+    if (!cardReady || !cloverRef.current) return;
     setPaymentLoading(true);
     setPaymentError(null);
 
@@ -182,10 +205,10 @@ within 10 calendar days.
     }
 
     try {
-      const result = await card.tokenize();
-      if (result.status === "OK") {
+      const result = await cloverRef.current.createToken();
+      if (!result.errors && result.token) {
         const amountInCents = Math.round(total * 100);
-        const API_URL = import.meta.env.DEV ? "/api/payments/square" : "https://smgcarecharity.vercel.app/api/payments";
+        const API_URL = import.meta.env.DEV ? "/api/payments/clover" : "https://smgcarecharity.vercel.app/api/payments/clover";
         const resp = await fetch(API_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -254,7 +277,8 @@ within 10 calendar days.
           setPaymentError(data.error || `Payment failed (${resp.status})`);
         }
       } else {
-        setPaymentError(result.errors?.[0]?.message || "Tokenization failed");
+        const firstError = result.errors ? Object.values(result.errors)[0] : "Card validation failed.";
+        setPaymentError(String(firstError) || "Card validation failed. Please check your details.");
       }
     } catch (e: any) {
       setPaymentError(e.message || "Unexpected error");
@@ -435,7 +459,7 @@ within 10 calendar days.
                 </button>
               </div>
 
-              {/* ── Credit Card: fee breakdown + Square form ─────────────── */}
+              {/* ── Credit Card: fee breakdown + Clover form ─────────────── */}
               {paymentMethod === "card" && (
                 <>
                   <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm space-y-1">
@@ -452,7 +476,64 @@ within 10 calendar days.
                       <span>${total.toFixed(2)}</span>
                     </div>
                   </div>
-                  <div id="square-card-container-sponsor" className="min-h-[80px]" />
+                  {/* Card form panel */}
+                  <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                    {/* Header strip */}
+                    <div className="flex items-center justify-between px-3.5 py-2 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                        <svg className="w-3.5 h-3.5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd"/>
+                        </svg>
+                        Secure Card Entry
+                      </span>
+                      <div className="flex items-center gap-1 opacity-70">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/Visa.svg" alt="Visa" className="h-3.5 object-contain" />
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" className="h-3.5 object-contain" />
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/American_Express_logo_%282018%29.svg" alt="Amex" className="h-3.5 object-contain" />
+                      </div>
+                    </div>
+
+                    {/* Integrated stripe-style inputs */}
+                    <div className="divide-y divide-slate-200">
+                      {/* Card Number Container */}
+                      <div className="px-3.5 py-2.5 bg-white">
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Card Number</label>
+                        <div
+                          id="clover-card-number-sponsor"
+                          style={{ height: "24px" }}
+                          className="w-full overflow-hidden"
+                        />
+                      </div>
+
+                      {/* Expiry, CVV, ZIP row */}
+                      <div className="grid grid-cols-3 divide-x divide-slate-200 bg-white">
+                        <div className="px-3.5 py-2.5">
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Expiry</label>
+                          <div
+                            id="clover-card-date-sponsor"
+                            style={{ height: "24px" }}
+                            className="w-full overflow-hidden"
+                          />
+                        </div>
+                        <div className="px-3.5 py-2.5">
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">CVV</label>
+                          <div
+                            id="clover-card-cvv-sponsor"
+                            style={{ height: "24px" }}
+                            className="w-full overflow-hidden"
+                          />
+                        </div>
+                        <div className="px-3.5 py-2.5">
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">ZIP</label>
+                          <div
+                            id="clover-card-postal-code-sponsor"
+                            style={{ height: "24px" }}
+                            className="w-full overflow-hidden"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </>
               )}
 
@@ -483,7 +564,10 @@ within 10 calendar days.
 
               {/* Error display */}
               {paymentError && (
-                <div className="text-red-500 text-sm font-medium p-3 bg-red-50 rounded-md border border-red-100">
+                <div className="flex items-start gap-2 text-red-600 text-sm font-medium p-3 bg-red-50 rounded-xl border border-red-200">
+                  <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
+                  </svg>
                   {paymentError}
                 </div>
               )}
@@ -535,7 +619,7 @@ within 10 calendar days.
               ) : paymentMethod === "card" ? (
                 <Button
                   onClick={handlePayment}
-                  disabled={paymentLoading || !card}
+                  disabled={paymentLoading || !cardReady}
                   className="bg-gradient-gold text-accent-foreground"
                 >
                   {paymentLoading ? "Processing..." : `Pay $${total.toFixed(2)}`}

@@ -121,9 +121,9 @@ const GolfRegister = () => {
   const [paymentMethod, setPaymentMethod] = useState<"card" | "check">("card");
   const [emailNotificationStatus, setEmailNotificationStatus] = useState<"idle" | "sending" | "sent" | "failed">("idle");
   const [emailNotificationError, setEmailNotificationError] = useState<string | null>(null);
-  const [card, setCard] = useState<any>(null);
-  const cardRef = useRef<any>(null);
-  const [payments, setPayments] = useState<any>(null);
+  const [cardReady, setCardReady] = useState(false);
+  const cloverRef = useRef<any>(null);
+  const cardElementsRef = useRef<any>(null);
 
   const [packages] = useState<any[]>(registrationPackages);
   const [tiers, setTiers] = useState<any[]>(defaultSponsorships.map((s) => ({
@@ -304,59 +304,89 @@ const GolfRegister = () => {
   useEffect(() => {
     if (paymentMethod !== "card") return;
     if (formStep === 3 && !paymentSuccess) {
-      // Clean up previous instance if exists
-      if (card) return;
+      if (cardElementsRef.current) return;
 
-      const appId = import.meta.env.VITE_SQUARE_APP_ID;
-      const locationId = import.meta.env.VITE_SQUARE_LOCATION_ID;
+      const publicToken = import.meta.env.VITE_CLOVER_PUBLIC_TOKEN;
+      const merchantId = import.meta.env.VITE_CLOVER_MERCHANT_ID;
+      const isSandbox = import.meta.env.VITE_CLOVER_ENV !== "production";
 
-      if (!appId || !locationId || appId === "YOUR_SQUARE_APP_ID" || locationId === "YOUR_SQUARE_LOCATION_ID" || appId.includes("YOUR_") || locationId.includes("YOUR_")) {
-        setPaymentError("Square Payment is not configured. Please define VITE_SQUARE_APP_ID and VITE_SQUARE_LOCATION_ID in your .env file.");
+      if (!publicToken || !merchantId) {
+        setPaymentError("Clover Payment is not configured. Please define VITE_CLOVER_PUBLIC_TOKEN and VITE_CLOVER_MERCHANT_ID in your .env file.");
         return;
       }
 
-      const isSandbox = appId.startsWith("sandbox-");
       const scriptUrl = isSandbox
-        ? "https://sandbox.web.squarecdn.com/v1/square.js"
-        : "https://web.squarecdn.com/v1/square.js";
+        ? "https://checkout.sandbox.dev.clover.com/sdk.js"
+        : "https://checkout.clover.com/sdk.js";
 
-      const initializeSquare = async () => {
+      const initializeClover = () => {
         try {
-          if (!(window as any).Square) return;
-          const sqPayments = (window as any).Square.payments(appId, locationId);
-          setPayments(sqPayments);
-          const cardObj = await sqPayments.card();
-          const container = document.getElementById('square-card-container');
-          if (!container) return; 
-          await cardObj.attach('#square-card-container');
-          cardRef.current = cardObj;
-          setCard(cardObj);
+          if (!(window as any).Clover) return;
+          const clover = new (window as any).Clover(publicToken, { merchantId });
+          const elements = clover.elements();
+
+          const cloverStyles = {
+            base: {
+              color: '#0f172a',
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '14px',
+              '::placeholder': {
+                color: '#94a3b8'
+              }
+            }
+          };
+
+          const cardNumber = elements.create('CARD_NUMBER', cloverStyles);
+          const cardDate = elements.create('CARD_DATE', cloverStyles);
+          const cardCvv = elements.create('CARD_CVV', cloverStyles);
+          const cardPostalCode = elements.create('CARD_POSTAL_CODE', cloverStyles);
+
+          if (!document.getElementById('clover-card-number')) return;
+
+          cardNumber.mount('#clover-card-number');
+          cardDate.mount('#clover-card-date');
+          cardCvv.mount('#clover-card-cvv');
+          cardPostalCode.mount('#clover-card-postal-code');
+
+          cloverRef.current = clover;
+          cardElementsRef.current = { cardNumber, cardDate, cardCvv, cardPostalCode };
+          setCardReady(true);
         } catch (e: any) {
-          console.error("Square initialization failed:", e);
+          console.error("Clover initialization failed:", e);
           setPaymentError(e.message || "Failed to initialize payment form. Please refresh and try again.");
         }
       };
 
-      const existingScript = document.getElementById('square-js');
+      const existingScript = document.getElementById('clover-js');
       if (existingScript) {
-        initializeSquare();
+        initializeClover();
       } else {
         const script = document.createElement("script");
-        script.id = 'square-js';
+        script.id = 'clover-js';
         script.src = scriptUrl;
-        script.onload = () => initializeSquare();
+        script.onload = () => initializeClover();
         document.body.appendChild(script);
       }
 
       return () => {
-        if (cardRef.current) {
-          cardRef.current.destroy();
-          cardRef.current = null;
-          setCard(null);
-        }
+        cloverRef.current = null;
+        cardElementsRef.current = null;
+        setCardReady(false);
       };
     }
   }, [paymentMethod, formStep]);
+
+  useEffect(() => {
+    if (paymentSuccess) {
+      // Clover's iframe SDK doesn't expose an unmount/destroy method, and can
+      // leave its injected footer/branding elements in the DOM after our
+      // container unmounts. Manually sweep them out once payment succeeds.
+      document.querySelectorAll('.clover-footer').forEach((el) => el.remove());
+      // Also remove any now-orphaned Clover iframe elements that may not have
+      // been cleaned up by React unmounting their parent container.
+      document.querySelectorAll('iframe[src*="clover.com"]').forEach((el) => el.remove());
+    }
+  }, [paymentSuccess]);
 
   const handleRegisterCTA = () => {
     if (!selectedPackage) {
@@ -402,7 +432,7 @@ const GolfRegister = () => {
   };
 
   const handlePaymentSubmit = async () => {
-    if (!card) return;
+    if (!cardReady || !cloverRef.current) return;
     setPaymentLoading(true);
     setPaymentError(null);
 
@@ -432,8 +462,8 @@ const GolfRegister = () => {
     }
 
     try {
-      const result = await card.tokenize();
-      if (result.status === "OK") {
+      const result = await cloverRef.current.createToken();
+      if (!result.errors && result.token) {
         let baseAmount = 0;
         let pName = "";
 
@@ -455,7 +485,7 @@ const GolfRegister = () => {
         const total = baseAmount + fee;
         const totalAmountCents = Math.round(total * 100);
 
-        const API_URL = import.meta.env.DEV ? "/api/payments/square" : "https://smgcarecharity.vercel.app/api/payments";
+        const API_URL = import.meta.env.DEV ? "/api/payments/clover" : "https://smgcarecharity.vercel.app/api/payments/clover";
         const response = await fetch(API_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -563,8 +593,10 @@ const GolfRegister = () => {
           setPaymentError(data.error || "Payment failed. Please try again.");
         }
       } else {
-        console.error("[GolfRegister] Card tokenization failed:", result.errors);
-        setPaymentError(result.errors?.[0]?.message || "Failed to tokenize card");
+        const firstError = result.errors ? Object.values(result.errors)[0] : "Card validation failed.";
+        setPaymentError(String(firstError) || "Card validation failed. Please check your details.");
+        setPaymentLoading(false);
+        return;
       }
     } catch (e: any) {
       console.error("[GolfRegister] Transaction unexpected error:", e);
@@ -1237,7 +1269,9 @@ const GolfRegister = () => {
                         onClick={() => {
                           setPaymentMethod("check");
                           setPaymentError(null);
-                          if (cardRef.current) { cardRef.current.destroy(); cardRef.current = null; setCard(null); }
+                          cloverRef.current = null;
+                          cardElementsRef.current = null;
+                          setCardReady(false);
                         }}
                         className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all duration-200 cursor-pointer ${
                           paymentMethod === "check"
@@ -1270,11 +1304,72 @@ const GolfRegister = () => {
                           <span>${total.toFixed(2)}</span>
                         </div>
                       </div>
-                      <div className="min-h-[80px]">
-                        <div id="square-card-container"></div>
+                      {/* Card form panel */}
+                      <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                        {/* Header strip */}
+                        <div className="flex items-center justify-between px-3.5 py-2 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
+                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                            <svg className="w-3.5 h-3.5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd"/>
+                            </svg>
+                            Secure Card Entry
+                          </span>
+                          <div className="flex items-center gap-1 opacity-70">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/Visa.svg" alt="Visa" className="h-3.5 object-contain" />
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" className="h-3.5 object-contain" />
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/American_Express_logo_%282018%29.svg" alt="Amex" className="h-3.5 object-contain" />
+                          </div>
+                        </div>
+
+                        {/* Integrated stripe-style inputs */}
+                        <div className="divide-y divide-slate-200">
+                          {/* Card Number Container */}
+                          <div className="px-3.5 py-2.5 bg-white">
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Card Number</label>
+                            <div
+                              id="clover-card-number"
+                              style={{ height: "24px" }}
+                              className="w-full overflow-hidden"
+                            />
+                          </div>
+
+                          {/* Expiry, CVV, ZIP row */}
+                          <div className="grid grid-cols-3 divide-x divide-slate-200 bg-white">
+                            <div className="px-3.5 py-2.5">
+                              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Expiry</label>
+                              <div
+                                id="clover-card-date"
+                                style={{ height: "24px" }}
+                                className="w-full overflow-hidden"
+                              />
+                            </div>
+                            <div className="px-3.5 py-2.5">
+                              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">CVV</label>
+                              <div
+                                id="clover-card-cvv"
+                                style={{ height: "24px" }}
+                                className="w-full overflow-hidden"
+                              />
+                            </div>
+                            <div className="px-3.5 py-2.5">
+                              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">ZIP</label>
+                              <div
+                                id="clover-card-postal-code"
+                                style={{ height: "24px" }}
+                                className="w-full overflow-hidden"
+                              />
+                            </div>
+                          </div>
+                        </div>
                       </div>
+
                       {paymentError && (
-                        <div className="text-red-500 text-sm font-medium p-3 bg-red-50 rounded-md border border-red-100">{paymentError}</div>
+                        <div className="flex items-start gap-2 text-red-600 text-sm font-medium p-3 bg-red-50 rounded-xl border border-red-200">
+                          <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
+                          </svg>
+                          {paymentError}
+                        </div>
                       )}
                     </div>
                   )}
@@ -1366,7 +1461,7 @@ const GolfRegister = () => {
                 ) : (
                   <Button
                     onClick={handleFinalSubmit}
-                    disabled={paymentLoading || !paymentMethod || (paymentMethod === "card" && !card)}
+                    disabled={paymentLoading || !paymentMethod || (paymentMethod === "card" && !cardReady)}
                     className="bg-gradient-gold text-accent-foreground font-bold hover:scale-105 transition-transform flex items-center"
                   >
                     {paymentLoading ? (
