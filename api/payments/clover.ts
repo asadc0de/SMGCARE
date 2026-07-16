@@ -84,9 +84,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (!cloverResponse.ok) {
       const errorDetail =
-        data?.message ||
         data?.error?.message ||
         data?.errors?.[0]?.message ||
+        data?.message ||
         "Payment failed";
       console.error(`❌ CLOVER API ERROR: ${errorDetail}`);
       console.log(`---------------------------\n`);

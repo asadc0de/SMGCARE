@@ -181,7 +181,7 @@ app.post("/api/payments/clover", async (req, res) => {
     }
 
     if (!cloverResponse.ok) {
-      const errorDetail = data?.message || data?.error?.message || data?.errors?.[0]?.message || "Payment failed";
+      const errorDetail = data?.error?.message || data?.errors?.[0]?.message || data?.message || "Payment failed";
       console.error(`❌ CLOVER API ERROR: ${errorDetail}`);
       console.log(`---------------------------\n`);
       res.status(400).json({ error: errorDetail });
