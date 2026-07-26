@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Pencil, Trash2, Image as ImageIcon, Save, X, Loader2, Trophy, Infinity as InfinityIcon, CheckCircle, XCircle, Clock, AlertCircle } from "lucide-react";
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, orderBy, setDoc, increment, where } from "firebase/firestore";
+import { 
+  Plus, Pencil, Trash2, Image as ImageIcon, Save, X, Loader2, Trophy, 
+  Infinity as InfinityIcon, CheckCircle, XCircle, Clock, AlertCircle, LogOut, Lock, Eye, EyeOff,
+  Ticket, CreditCard, DollarSign, Search, RefreshCw, RotateCcw
+} from "lucide-react";
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, orderBy, setDoc, increment, where, arrayRemove } from "firebase/firestore";
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "firebase/auth";
 import { db, auth, firebaseIsConfigured } from "@/lib/firebase";
 import { PageShell } from "@/components/PageShell";
@@ -9,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { LogOut, Lock, Eye, EyeOff } from "lucide-react";
 import { buildSponsorshipRows, defaultSponsorships } from "@/lib/sponsorships";
 
 interface Purchase {
@@ -33,9 +36,25 @@ interface CheckReservation {
   buyerEmail: string;
   packageName: string;
   sponsorshipId: string;
+  numbers?: number[];
   amount: number;
   status: "pending" | "approved" | "rejected" | "expired";
   paymentMethod: "check";
+}
+
+interface RaffleItem {
+  id: string;
+  numbers: number[];
+  buyerName: string;
+  buyerEmail: string;
+  buyerPhone?: string;
+  paymentMethod: "card" | "check";
+  amount: number;
+  status: "approved" | "pending" | "rejected" | "expired";
+  timestamp: string;
+  expiresAt?: string;
+  sourceCollection: "raffle_orders" | "checkReservations";
+  rawReservation?: CheckReservation;
 }
 
 interface Event {
@@ -64,7 +83,7 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
   const [authLoading, setAuthLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [activeAdminTab, setActiveAdminTab] = useState<"events" | "sponsorships" | "purchases" | "checkReservations">("events");
+  const [activeAdminTab, setActiveAdminTab] = useState<"events" | "sponsorships" | "purchases" | "checkReservations" | "raffle">("events");
   const [sponsorships, setSponsorships] = useState<any[]>([]);
   const [sponsorshipsLoading, setSponsorshipsLoading] = useState(false);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
@@ -79,6 +98,14 @@ const Admin = () => {
   const [checkReservationsLoading, setCheckReservationsLoading] = useState(false);
   const [checkReservationsFilter, setCheckReservationsFilter] = useState<"all" | "pending" | "approved" | "rejected" | "expired">("pending");
   const [processingReservationId, setProcessingReservationId] = useState<string | null>(null);
+
+  // ── Raffle Tab States ─────────────────────────────────────────────────────
+  const [raffleItems, setRaffleItems] = useState<RaffleItem[]>([]);
+  const [raffleLoading, setRaffleLoading] = useState(false);
+  const [raffleFilter, setRaffleFilter] = useState<"all" | "pending" | "approved" | "rejected" | "expired">("all");
+  const [raffleSearch, setRaffleSearch] = useState("");
+  const [raffleResetting, setRaffleResetting] = useState(false);
+
   const [newSponsorship, setNewSponsorship] = useState({
     tierName: "",
     price: "",
@@ -117,6 +144,7 @@ const Admin = () => {
         fetchSponsorships();
         fetchPurchases();
         fetchCheckReservations();
+        fetchRaffleItems();
       } else {
         setUser(null);
       }
@@ -124,6 +152,115 @@ const Admin = () => {
     });
     return () => unsubscribe();
   }, []);
+
+  const fetchRaffleItems = async () => {
+    setRaffleLoading(true);
+    try {
+      // 1. Card orders from raffle_orders
+      const ordersSnap = await getDocs(query(collection(db, "raffle_orders"), orderBy("createdAt", "desc")));
+      const cardItems: RaffleItem[] = ordersSnap.docs.map((docSnap) => {
+        const d = docSnap.data();
+        return {
+          id: docSnap.id,
+          numbers: d.numbers || [],
+          buyerName: d.buyerName || d.name || "Anonymous",
+          buyerEmail: d.buyerEmail || d.email || "N/A",
+          buyerPhone: d.buyerPhone || d.phone || "",
+          paymentMethod: "card",
+          amount: d.amount || 0,
+          status: "approved",
+          timestamp: d.createdAt || d.timestamp || new Date().toISOString(),
+          sourceCollection: "raffle_orders",
+        };
+      });
+
+      // 2. Check reservations from checkReservations
+      const checkSnap = await getDocs(
+        query(collection(db, "checkReservations"), where("sponsorshipId", "==", "raffle"))
+      );
+      const checkItems: RaffleItem[] = checkSnap.docs.map((docSnap) => {
+        const d = docSnap.data() as CheckReservation;
+        return {
+          id: docSnap.id,
+          numbers: d.numbers || [],
+          buyerName: d.buyerName || "Anonymous",
+          buyerEmail: d.buyerEmail || "N/A",
+          buyerPhone: (d as any).buyerPhone || "",
+          paymentMethod: "check",
+          amount: d.amount || 0,
+          status: d.status || "pending",
+          timestamp: d.timestamp || new Date().toISOString(),
+          expiresAt: d.expiresAt,
+          sourceCollection: "checkReservations",
+          rawReservation: { id: docSnap.id, ...d },
+        };
+      });
+
+      const combined = [...cardItems, ...checkItems].sort(
+        (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
+
+      setRaffleItems(combined);
+    } catch (e: any) {
+      console.error("Error fetching raffle items:", e);
+      toast.error("Failed to load raffle records.");
+    } finally {
+      setRaffleLoading(false);
+    }
+  };
+
+  const handleRaffleReset = async () => {
+    if (!window.confirm(
+      "⚠️ FULL RAFFLE RESET ⚠️\n\n" +
+      "This will permanently:\n" +
+      "• Clear ALL sold/reserved box numbers from the live board\n" +
+      "• Delete ALL raffle card payment orders (raffle_orders)\n" +
+      "• Mark ALL raffle check reservations as Rejected (checkReservations)\n\n" +
+      "This CANNOT be undone. Type OK in the next prompt to confirm."
+    )) return;
+
+    const confirm2 = window.prompt("Type RESET to confirm. All raffle data will be cleared:");
+    if (confirm2?.trim().toUpperCase() !== "RESET") {
+      toast.error("Reset cancelled — confirmation text did not match.");
+      return;
+    }
+
+    setRaffleResetting(true);
+    try {
+      let deleted = 0;
+      let rejected = 0;
+
+      // 1. Clear soldNumbers on raffle_tickets/board
+      await setDoc(doc(db, "raffle_tickets", "board"), {
+        soldNumbers: [],
+        updatedAt: new Date().toISOString(),
+      }, { merge: false });
+
+      // 2. Delete all raffle_orders (card payments)
+      const ordersSnap = await getDocs(collection(db, "raffle_orders"));
+      for (const d of ordersSnap.docs) {
+        await deleteDoc(doc(db, "raffle_orders", d.id));
+        deleted++;
+      }
+
+      // 3. Mark all raffle checkReservations as rejected
+      const checkSnap = await getDocs(
+        query(collection(db, "checkReservations"), where("sponsorshipId", "==", "raffle"))
+      );
+      for (const d of checkSnap.docs) {
+        await updateDoc(doc(db, "checkReservations", d.id), { status: "rejected" });
+        rejected++;
+      }
+
+      toast.success(`Raffle reset complete — board cleared, ${deleted} order(s) deleted, ${rejected} reservation(s) rejected.`);
+      await fetchRaffleItems();
+    } catch (e: any) {
+      console.error("Raffle reset error:", e);
+      toast.error("Reset failed: " + (e.message || "unknown error"));
+    } finally {
+      setRaffleResetting(false);
+    }
+  };
 
   const fetchCheckReservations = async () => {
     setCheckReservationsLoading(true);
@@ -149,7 +286,7 @@ const Admin = () => {
                             reservation.sponsorshipId !== "individual" &&
                             reservation.sponsorshipId !== "foursome" &&
                             reservation.sponsorshipId !== "cocktail";
-      if (isSponsorship) {
+      if (isSponsorship && reservation.sponsorshipId !== "raffle") {
         const sponsorRef = doc(db, "sponsorships", reservation.sponsorshipId);
         await updateDoc(sponsorRef, {
           soldCount: increment(1),
@@ -172,6 +309,7 @@ const Admin = () => {
       toast.success(`${reservation.buyerName} approved!`);
       fetchCheckReservations();
       fetchSponsorships();
+      fetchRaffleItems();
     } catch (e: any) {
       console.error("Error approving reservation:", e);
       toast.error("Failed to approve reservation.");
@@ -191,16 +329,21 @@ const Admin = () => {
                             reservation.sponsorshipId !== "individual" &&
                             reservation.sponsorshipId !== "foursome" &&
                             reservation.sponsorshipId !== "cocktail";
-      if (isSponsorship) {
+      if (isSponsorship && reservation.sponsorshipId !== "raffle") {
         const sponsorRef = doc(db, "sponsorships", reservation.sponsorshipId);
         await updateDoc(sponsorRef, {
           reservedCount: increment(-1),
+        });
+      } else if (reservation.sponsorshipId === "raffle" && reservation.numbers?.length) {
+        await updateDoc(doc(db, "raffle_tickets", "board"), {
+          soldNumbers: arrayRemove(...reservation.numbers),
         });
       }
 
       toast.success("Reservation rejected. Spot freed.");
       fetchCheckReservations();
       fetchSponsorships();
+      fetchRaffleItems();
     } catch (e: any) {
       console.error("Error rejecting reservation:", e);
       toast.error("Failed to reject reservation.");
@@ -224,9 +367,13 @@ const Admin = () => {
                                 data.sponsorshipId !== "individual" &&
                                 data.sponsorshipId !== "foursome" &&
                                 data.sponsorshipId !== "cocktail";
-          if (isSponsorship) {
+          if (isSponsorship && data.sponsorshipId !== "raffle") {
             await updateDoc(doc(db, "sponsorships", data.sponsorshipId), {
               reservedCount: increment(-1),
+            });
+          } else if (data.sponsorshipId === "raffle" && data.numbers?.length) {
+            await updateDoc(doc(db, "raffle_tickets", "board"), {
+              soldNumbers: arrayRemove(...data.numbers),
             });
           }
           count++;
@@ -518,11 +665,14 @@ const Admin = () => {
     );
   }
 
+  const pendingRaffleCount = raffleItems.filter(i => i.status === "pending").length;
+
   const tabTitle = {
     events: "Event Manager",
     sponsorships: "Sponsorship Manager",
     purchases: "Purchase History",
     checkReservations: "Check Reservations",
+    raffle: "2026 Raffle Board Manager",
   }[activeAdminTab];
 
   const tabDesc = {
@@ -530,6 +680,7 @@ const Admin = () => {
     sponsorships: "Track and adjust real-time sponsorship availability, claims, and limits.",
     purchases: "View a read-only log of all successful and failed payment attempts.",
     checkReservations: "Review and approve or reject pending check payment reservations.",
+    raffle: "Real-time summary, number lookup, card sales, and check reservations for the 2026 Raffle.",
   }[activeAdminTab];
 
   return (
@@ -562,6 +713,15 @@ const Admin = () => {
                   {pendingCount > 0 && (
                     <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-black rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
                       {pendingCount}
+                    </span>
+                  )}
+                </button>
+                <button onClick={() => { setActiveAdminTab("raffle"); fetchRaffleItems(); }}
+                  className={`relative px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-300 ${activeAdminTab === "raffle" ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:text-foreground"}`}>
+                  2026 Raffle
+                  {pendingRaffleCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 bg-amber-500 text-white text-[10px] font-black rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                      {pendingRaffleCount}
                     </span>
                   )}
                 </button>
@@ -966,7 +1126,7 @@ const Admin = () => {
             </div>
 
           /* ── CHECK RESERVATIONS TAB ── */
-          ) : (
+          ) : activeAdminTab === "checkReservations" ? (
             <div className="space-y-6">
               <div className="bg-white border border-border rounded-3xl p-6 shadow-sm flex items-center justify-between gap-4 flex-wrap">
                 <div>
@@ -1084,6 +1244,266 @@ const Admin = () => {
                       </p>
                     </div>
                   )}
+                </div>
+              )}
+            </div>
+
+          /* ── RAFFLE MANAGER TAB ── */
+          ) : (
+            <div className="space-y-6">
+              {/* Summary Cards */}
+              {(() => {
+                const soldItems = raffleItems.filter(i => i.status === "approved");
+                const totalBoxesSold = soldItems.reduce((acc, i) => acc + i.numbers.length, 0);
+                const totalRevenue = soldItems.reduce((acc, i) => acc + i.amount, 0);
+
+                const cardOrders = raffleItems.filter(i => i.paymentMethod === "card" && i.status === "approved");
+                const cardRevenue = cardOrders.reduce((acc, i) => acc + i.amount, 0);
+                const cardBoxes = cardOrders.reduce((acc, i) => acc + i.numbers.length, 0);
+
+                const checkApproved = raffleItems.filter(i => i.paymentMethod === "check" && i.status === "approved");
+                const checkApprovedRev = checkApproved.reduce((acc, i) => acc + i.amount, 0);
+
+                const checkPending = raffleItems.filter(i => i.paymentMethod === "check" && i.status === "pending");
+                const checkPendingRev = checkPending.reduce((acc, i) => acc + i.amount, 0);
+
+                return (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* Revenue Card */}
+                    <div className="bg-white border border-border rounded-3xl p-5 shadow-sm space-y-1">
+                      <div className="flex items-center justify-between text-muted-foreground text-xs font-bold uppercase tracking-wider">
+                        <span>Total Revenue</span>
+                        <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                          <DollarSign size={18} />
+                        </div>
+                      </div>
+                      <div className="text-2xl font-black font-display text-foreground">${totalRevenue.toLocaleString()}</div>
+                      <p className="text-xs text-muted-foreground">From confirmed card & check sales</p>
+                    </div>
+
+                    {/* Boxes Sold Card */}
+                    <div className="bg-white border border-border rounded-3xl p-5 shadow-sm space-y-1">
+                      <div className="flex items-center justify-between text-muted-foreground text-xs font-bold uppercase tracking-wider">
+                        <span>Boxes Sold</span>
+                        <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                          <Ticket size={18} />
+                        </div>
+                      </div>
+                      <div className="text-2xl font-black font-display text-foreground">{totalBoxesSold} <span className="text-sm font-normal text-muted-foreground">/ 100</span></div>
+                      <p className="text-xs text-muted-foreground">{100 - totalBoxesSold} box numbers available</p>
+                    </div>
+
+                    {/* Card Payments Breakdown */}
+                    <div className="bg-white border border-border rounded-3xl p-5 shadow-sm space-y-1">
+                      <div className="flex items-center justify-between text-muted-foreground text-xs font-bold uppercase tracking-wider">
+                        <span>Card Payments</span>
+                        <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                          <CreditCard size={18} />
+                        </div>
+                      </div>
+                      <div className="text-2xl font-black font-display text-foreground">${cardRevenue.toLocaleString()}</div>
+                      <p className="text-xs text-muted-foreground">{cardOrders.length} order(s) · {cardBoxes} box(es)</p>
+                    </div>
+
+                    {/* Check Payments Breakdown */}
+                    <div className="bg-white border border-border rounded-3xl p-5 shadow-sm space-y-1">
+                      <div className="flex items-center justify-between text-muted-foreground text-xs font-bold uppercase tracking-wider">
+                        <span>Check Reservations</span>
+                        <div className="w-8 h-8 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center">
+                          <Clock size={18} />
+                        </div>
+                      </div>
+                      <div className="text-2xl font-black font-display text-foreground">${checkApprovedRev.toLocaleString()}</div>
+                      <p className="text-xs text-amber-700 font-medium">
+                        Pending: {checkPending.length} order(s) (${checkPendingRev.toLocaleString()})
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Search & Filter Header Bar */}
+              <div className="bg-white border border-border rounded-3xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg font-display text-foreground">Raffle Number Reservations</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Search by box number or buyer details. Review credit card purchases and manage pending check reservations.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2.5 items-center">
+                  {/* Search box input */}
+                  <div className="relative min-w-[200px] sm:min-w-[240px]">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+                    <Input
+                      type="text"
+                      placeholder="Search box #, name, email..."
+                      value={raffleSearch}
+                      onChange={(e) => setRaffleSearch(e.target.value)}
+                      className="pl-9 bg-surface border-border rounded-xl h-10 text-sm font-medium focus:border-accent focus:ring-1 focus:ring-accent"
+                    />
+                    {raffleSearch && (
+                      <button onClick={() => setRaffleSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Filter select */}
+                  <select
+                    value={raffleFilter}
+                    onChange={(e) => setRaffleFilter(e.target.value as any)}
+                    className="bg-surface border-border rounded-xl px-3 py-2 text-sm focus:border-accent focus:ring-1 focus:ring-accent outline-none font-medium text-foreground h-10"
+                  >
+                    <option value="all">All Records</option>
+                    <option value="pending">Pending Check</option>
+                    <option value="approved">Paid / Approved</option>
+                    <option value="rejected">Rejected</option>
+                    <option value="expired">Expired</option>
+                  </select>
+
+                  <Button onClick={fetchRaffleItems} variant="outline" className="rounded-xl h-10 px-4 text-sm font-bold flex items-center gap-1.5">
+                    <RefreshCw size={14} className={raffleLoading ? "animate-spin" : ""} /> Refresh
+                  </Button>
+
+                  <Button
+                    onClick={handleRaffleReset}
+                    disabled={raffleResetting}
+                    variant="outline"
+                    className="rounded-xl h-10 px-4 text-sm font-bold flex items-center gap-1.5 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-400"
+                  >
+                    {raffleResetting
+                      ? <Loader2 size={14} className="animate-spin" />
+                      : <RotateCcw size={14} />
+                    }
+                    Reset Raffle
+                  </Button>
+                </div>
+              </div>
+
+              {/* Records List / Table */}
+              {raffleLoading ? (
+                <div className="flex justify-center py-20"><Loader2 className="animate-spin text-accent" size={40} /></div>
+              ) : (
+                <div className="space-y-4">
+                  {(() => {
+                    const filtered = raffleItems.filter((item) => {
+                      if (raffleFilter !== "all" && item.status !== raffleFilter) return false;
+                      if (!raffleSearch.trim()) return true;
+
+                      const q = raffleSearch.toLowerCase().trim();
+                      const cleanBox = q.replace(/^#/, "");
+                      const matchesBox = item.numbers.some((num) => num.toString() === cleanBox);
+                      const matchesName = item.buyerName.toLowerCase().includes(q);
+                      const matchesEmail = item.buyerEmail.toLowerCase().includes(q);
+                      const matchesPhone = item.buyerPhone?.toLowerCase().includes(q);
+
+                      return matchesBox || matchesName || matchesEmail || matchesPhone;
+                    });
+
+                    if (filtered.length === 0) {
+                      return (
+                        <div className="text-center py-20 border border-dashed border-border bg-white rounded-3xl">
+                          <Ticket className="mx-auto mb-3 text-muted-foreground/40" size={40} />
+                          <p className="text-muted-foreground font-medium">
+                            {raffleSearch ? `No raffle records found matching "${raffleSearch}".` : "No raffle records found."}
+                          </p>
+                        </div>
+                      );
+                    }
+
+                    return filtered.map((item) => {
+                      const isOverdue = item.status === "pending" && item.expiresAt && new Date(item.expiresAt).getTime() <= Date.now();
+                      return (
+                        <motion.div
+                          key={item.id}
+                          layout
+                          className={`bg-white border rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row sm:items-center gap-4 transition-all ${
+                            item.status === "pending" ? "border-amber-200 bg-amber-50/20" :
+                            item.status === "approved" ? "border-emerald-200 bg-emerald-50/20" :
+                            item.status === "rejected" ? "border-red-200 bg-red-50/20 opacity-75" :
+                            "border-gray-200 bg-gray-50/50 opacity-60"
+                          }`}
+                        >
+                          {/* Box Numbers Badges */}
+                          <div className="shrink-0 flex sm:flex-col items-center justify-center gap-1 min-w-[90px]">
+                            <div className="flex flex-wrap gap-1 max-w-[120px]">
+                              {item.numbers.slice().sort((a, b) => a - b).map((n) => (
+                                <span key={n} className="px-2.5 py-1 rounded-full text-xs font-black bg-primary text-primary-foreground shadow-sm">
+                                  #{n}
+                                </span>
+                              ))}
+                            </div>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">
+                              {item.numbers.length} {item.numbers.length === 1 ? "Box" : "Boxes"}
+                            </span>
+                          </div>
+
+                          {/* Buyer & Info */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2 mb-1">
+                              <span className="font-bold text-foreground">{item.buyerName}</span>
+                              <span className="text-muted-foreground text-xs">{item.buyerEmail}</span>
+                              {item.buyerPhone && (
+                                <span className="text-muted-foreground text-xs">· {item.buyerPhone}</span>
+                              )}
+                              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                                item.paymentMethod === "card"
+                                  ? "bg-indigo-100 text-indigo-700"
+                                  : "bg-amber-100 text-amber-700"
+                              }`}>
+                                {item.paymentMethod === "card" ? "Credit Card" : "Check"}
+                              </span>
+                              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                                item.status === "approved" ? "bg-emerald-100 text-emerald-800" :
+                                item.status === "pending" ? "bg-amber-100 text-amber-800" :
+                                item.status === "rejected" ? "bg-red-100 text-red-700" :
+                                "bg-gray-100 text-gray-700"
+                              }`}>
+                                {item.status === "approved" ? "Paid / Approved" : item.status}
+                              </span>
+                            </div>
+
+                            <div className="text-sm text-muted-foreground space-y-1">
+                              <div>
+                                <span className="font-bold text-accent">${item.amount.toLocaleString()}</span>
+                                <span className="mx-2">·</span>
+                                <span>{new Date(item.timestamp).toLocaleString()}</span>
+                              </div>
+                              {item.expiresAt && item.status === "pending" && (
+                                <div className="text-xs text-amber-700 font-medium">
+                                  ⏳ Expires: {new Date(item.expiresAt).toLocaleString()}
+                                  {isOverdue && <span className="text-red-500 font-extrabold ml-2">OVERDUE</span>}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Actions — for pending check reservations */}
+                          {item.paymentMethod === "check" && item.status === "pending" && item.rawReservation && (
+                            <div className="flex gap-2 shrink-0">
+                              <Button
+                                onClick={() => handleRejectReservation(item.rawReservation!)}
+                                disabled={processingReservationId === item.id}
+                                variant="outline"
+                                className="h-10 px-4 rounded-xl text-xs font-bold border-red-200 text-red-600 hover:bg-red-50 flex items-center gap-1.5"
+                              >
+                                {processingReservationId === item.id ? <Loader2 size={12} className="animate-spin" /> : <XCircle size={14} />}
+                                Reject
+                              </Button>
+                              <Button
+                                onClick={() => handleApproveReservation(item.rawReservation!)}
+                                disabled={processingReservationId === item.id}
+                                className="h-10 px-4 rounded-xl text-xs font-bold bg-green-600 hover:bg-green-700 text-white flex items-center gap-1.5"
+                              >
+                                {processingReservationId === item.id ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle size={14} />}
+                                Approve
+                              </Button>
+                            </div>
+                          )}
+                        </motion.div>
+                      );
+                    });
+                  })()}
                 </div>
               )}
             </div>

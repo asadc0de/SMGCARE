@@ -15,6 +15,7 @@ import EventDetail from "./pages/EventDetail.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Terms from "./pages/Terms.tsx";
 import Privacy from "./pages/Privacy.tsx";
+import Raffle from "./pages/Raffle.tsx";
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -53,6 +54,7 @@ const App = () => (
         <Route path="/events/:id" element={<EventDetail />} />
         <Route path="/golf" element={<Golf />} />
         <Route path="/gallery" element={<Gallery />} />
+        <Route path="/raffle" element={<Raffle />} />
         <Route path="/donate" element={<Donate />} />
         <Route path="/golf-register" element={<GolfRegister />} />
         <Route path="/admin" element={<Admin />} />

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, MapPin, Calendar, Trophy, CheckCircle2, XCircle, AlertCircle, Infinity } from "lucide-react";
+import { ArrowRight, MapPin, Calendar, Trophy, CheckCircle2, XCircle, AlertCircle, Infinity, FileText } from "lucide-react";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { PageShell } from "@/components/PageShell";
@@ -12,6 +12,7 @@ import golfHero from "@/assets/golf-hero.jpg";
 import g2 from "@/assets/gallery-2.jpg";
 import e1 from "@/assets/event-2025.jpg";
 import g3 from "@/assets/gallery-3.jpg";
+import philByerPortrait from "@/assets/phil-byer.jpg";
 
 // ── Static sponsorship definitions (merged with live Firestore data) ───────────
 // maxLimit: -1 = unlimited
@@ -202,16 +203,46 @@ const Golf = () => {
                 </div>
               </div>
             </motion.div>
-            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1.5, delay: 0.4 }} className="lg:col-span-4 xl:col-span-5 hidden lg:flex flex-col items-center gap-12">
-              <div className="relative">
-                <motion.div animate={{ rotate: -360 }} transition={{ duration: 30, repeat: Infinity, ease: "linear" }} className="absolute -inset-10 border-2 border-white/5 rounded-[4rem] rotate-12" />
-                <motion.div animate={{ rotate: 360 }} transition={{ duration: 25, repeat: Infinity, ease: "linear" }} className="absolute -inset-16 border border-accent/20 rounded-[5rem] -rotate-12" />
-                <div className="relative z-10 w-72 h-72 bg-gradient-navy rounded-[3.5rem] border border-white/10 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] flex flex-col items-center justify-center p-8 text-center overflow-hidden">
-                  <div className="absolute inset-0 floral-pattern opacity-10" />
-                  <Trophy className="text-accent-soft mb-6 relative z-10" size={64} />
-                  <p className="text-[10px] uppercase tracking-[0.5em] font-black text-accent-soft relative z-10 mb-2">Annual</p>
-                  <h3 className="font-display text-4xl text-white relative z-10 leading-none">Prestige</h3>
-                  <div className="h-px w-10 bg-accent/30 my-4 relative z-10" />
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1.5, delay: 0.4 }} className="lg:col-span-4 xl:col-span-5 flex flex-col items-center gap-8 mt-12 lg:mt-0">
+              <div className="relative w-full max-w-sm md:max-w-md">
+                <motion.div animate={{ rotate: -360 }} transition={{ duration: 30, repeat: Infinity, ease: "linear" }} className="absolute -inset-6 md:-inset-10 border-2 border-white/5 rounded-[4rem] rotate-12 pointer-events-none" />
+                <motion.div animate={{ rotate: 360 }} transition={{ duration: 25, repeat: Infinity, ease: "linear" }} className="absolute -inset-12 md:-inset-16 border border-accent/20 rounded-[5rem] -rotate-12 pointer-events-none" />
+                <div className="relative z-10 w-full bg-gradient-navy rounded-[3rem] border border-white/10 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] flex flex-col items-center p-6 md:p-8 text-center overflow-hidden">
+                  <div className="absolute inset-0 floral-pattern opacity-10 pointer-events-none" />
+                  
+                  {/* Portrait and Logo Container */}
+                  <div className="relative flex flex-row items-center gap-4 mb-6 z-10">
+                    {/* Portrait Image */}
+                    <div className="w-28 h-28 md:w-32 md:h-32 rounded-full border-2 border-accent/40 overflow-hidden shadow-lg flex-shrink-0 bg-primary/45">
+                      <img src={philByerPortrait} alt="Phil Byer" className="w-full h-full object-cover object-top" />
+                    </div>
+
+                    {/* Accompanying "Annual Prestige" Logo/Wordmark */}
+                    <div className="flex flex-col items-center text-center bg-white/5 backdrop-blur-md rounded-2xl p-3 border border-white/10 w-24">
+                      <Trophy className="text-accent-soft mb-1 flex-shrink-0" size={18} />
+                      <p className="text-[8px] uppercase tracking-[0.25em] font-black text-accent-soft leading-none">Annual</p>
+                      <h4 className="font-display text-sm text-white leading-tight font-bold mt-1">Prestige</h4>
+                    </div>
+                  </div>
+
+                  {/* Honoree Details */}
+                  <div className="relative z-10 flex flex-col items-center">
+                    <h3 className="font-display text-lg md:text-xl text-white font-bold leading-snug tracking-tight px-2 mb-3">
+                      SMG Cares 2026 Annual Golf Outing Honoree: <span className="italic text-[#72a8ff]">Phil Byer</span> – Schulman Insurance
+                    </h3>
+                    
+                    <p className="text-xs md:text-sm text-white/70 leading-relaxed font-normal mb-6 px-1">
+                      SMG CARES is proud to recognize Phil Byer as the Honoree of our 2026 Annual Charity Golf Outing. In recognition of his years of generosity, community involvement, and steadfast support of SMG CARES, we are honored to celebrate his outstanding contributions.
+                    </p>
+
+                    {/* View Official Flyer Button */}
+                    <Button asChild className="bg-gradient-gold text-accent-foreground font-black hover:scale-105 transition-transform rounded-full px-6 py-2 h-10 text-xs uppercase tracking-wider">
+                      <a href="/assets/documents/smg-cares-2026-honoree-flyer.pdf" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                        <FileText size={14} />
+                        View Official Flyer
+                      </a>
+                    </Button>
+                  </div>
                 </div>
               </div>
             </motion.div>

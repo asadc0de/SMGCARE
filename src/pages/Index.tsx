@@ -230,6 +230,9 @@ const Index = () => {
                   <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/10 focus:bg-white/10 font-medium py-3 rounded-lg">
                     <Link to="/golf-register?scroll=true">2026 Charity Golf Outing</Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/10 focus:bg-white/10 font-medium py-3 rounded-lg">
+                    <Link to="/raffle">2026 Charity Raffle</Link>
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
