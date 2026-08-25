@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,6 +16,10 @@ import NotFound from "./pages/NotFound.tsx";
 import Terms from "./pages/Terms.tsx";
 import Privacy from "./pages/Privacy.tsx";
 import Raffle from "./pages/Raffle.tsx";
+
+// ── Feature Flags ────────────────────────────────────────────────────────────
+// To re-enable, flip to `true` — no other changes needed.
+const RAFFLE_ENABLED = true;
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -54,7 +58,11 @@ const App = () => (
         <Route path="/events/:id" element={<EventDetail />} />
         <Route path="/golf" element={<Golf />} />
         <Route path="/gallery" element={<Gallery />} />
-        <Route path="/raffle" element={<Raffle />} />
+        {/* RAFFLE_ENABLED — flip the flag above to re-enable the raffle route */}
+        <Route
+          path="/raffle"
+          element={RAFFLE_ENABLED ? <Raffle /> : <Navigate to="/" replace />}
+        />
         <Route path="/donate" element={<Donate />} />
         <Route path="/golf-register" element={<GolfRegister />} />
         <Route path="/admin" element={<Admin />} />

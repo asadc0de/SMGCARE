@@ -3,8 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Plus, Pencil, Trash2, Image as ImageIcon, Save, X, Loader2, Trophy, 
   Infinity as InfinityIcon, CheckCircle, XCircle, Clock, AlertCircle, LogOut, Lock, Eye, EyeOff,
-  Ticket, CreditCard, DollarSign, Search, RefreshCw, RotateCcw
+  Ticket, CreditCard, DollarSign, Search, RefreshCw, RotateCcw, Download
 } from "lucide-react";
+import * as XLSX from "xlsx";
 import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, orderBy, setDoc, increment, where, arrayRemove } from "firebase/firestore";
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "firebase/auth";
 import { db, auth, firebaseIsConfigured } from "@/lib/firebase";
@@ -13,6 +14,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { buildSponsorshipRows, defaultSponsorships } from "@/lib/sponsorships";
 
 interface Purchase {
@@ -92,6 +100,7 @@ const Admin = () => {
   const [purchasesSort, setPurchasesSort] = useState<"date_desc" | "date_asc" | "amount_desc" | "amount_asc">("date_desc");
   const [savingSponsorId, setSavingSponsorId] = useState<string | null>(null);
   const [mutatingSponsorId, setMutatingSponsorId] = useState<string | null>(null);
+  const [editingSponsorship, setEditingSponsorship] = useState<any | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showAddSponsorshipForm, setShowAddSponsorshipForm] = useState(false);
   const [checkReservations, setCheckReservations] = useState<CheckReservation[]>([]);
@@ -421,6 +430,44 @@ const Admin = () => {
     }
   };
 
+  const filteredPurchases = purchases
+    .filter(p => purchasesFilter === "All" ? true : purchasesFilter === "Success" ? p.paymentStatus === "success" : p.paymentStatus === "failed")
+    .sort((a, b) => {
+      if (purchasesSort === "date_desc") return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+      if (purchasesSort === "date_asc") return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+      if (purchasesSort === "amount_desc") return b.amount - a.amount;
+      if (purchasesSort === "amount_asc") return a.amount - b.amount;
+      return 0;
+    });
+
+  const handleExportPurchasesExcel = () => {
+    if (filteredPurchases.length === 0) {
+      toast.error("No purchases in current view to export.");
+      return;
+    }
+
+    const dataToExport = filteredPurchases.map((p) => ({
+      "Date": new Date(p.timestamp).toLocaleString(),
+      "Buyer Name": p.buyerName || "",
+      "Buyer Email": p.buyerEmail || "",
+      "Package": p.packageName || "",
+      "Amount": typeof p.amount === "number" ? p.amount : Number(p.amount || 0),
+      "Status": p.paymentStatus || "",
+      "Failure Reason": p.failureReason || "",
+      "Source": p.source || "",
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Purchases");
+
+    const dateStr = new Date().toISOString().split("T")[0];
+    const filename = `smg-cares-purchases-${dateStr}.xlsx`;
+
+    XLSX.writeFile(workbook, filename);
+    toast.success(`Exported ${filteredPurchases.length} purchase record(s) to Excel.`);
+  };
+
   const handleSaveSponsorship = async (s: any) => {
     setSavingSponsorId(s.id);
     try {
@@ -437,6 +484,44 @@ const Admin = () => {
       toast.error("Failed to save sponsorship slots.");
     } finally {
       setSavingSponsorId(null);
+    }
+  };
+
+  const handleUpdateSponsorship = async (s: any) => {
+    if (!s.tierName?.trim() || !s.price?.trim()) {
+      toast.error("Please provide a sponsorship name and price.");
+      return;
+    }
+    setMutatingSponsorId(s.id);
+    try {
+      const docRef = doc(db, "sponsorships", s.id);
+      const perksList = Array.isArray(s.perks)
+        ? s.perks.map((p: string) => p.trim()).filter(Boolean)
+        : typeof s.perks === "string"
+        ? (s.perks as string).split("\n").map((p: string) => p.trim()).filter(Boolean)
+        : [];
+
+      await setDoc(docRef, {
+        tierName: s.tierName.trim(),
+        price: s.price.trim(),
+        soldCount: Number(s.soldCount ?? 0),
+        reservedCount: Number(s.reservedCount ?? 0),
+        maxLimit: Number(s.maxLimit ?? 1),
+        featured: !!s.featured,
+        hidden: !!s.hidden,
+        perks: perksList,
+        custom: !!s.custom,
+        numberOfGolferSlots: Number(s.numberOfGolferSlots ?? 0),
+      }, { merge: true });
+
+      toast.success(`${s.tierName} updated successfully!`);
+      setEditingSponsorship(null);
+      fetchSponsorships();
+    } catch (e: any) {
+      console.error("Error updating sponsorship:", e);
+      toast.error("Failed to update sponsorship.");
+    } finally {
+      setMutatingSponsorId(null);
     }
   };
 
@@ -1026,6 +1111,10 @@ const Admin = () => {
                             <label htmlFor={`unlimited-${s.id}`} className="text-xs font-semibold text-muted-foreground select-none cursor-pointer">Unlimited slots</label>
                           </div>
                           <div className="flex items-center gap-2">
+                            <Button type="button" variant="outline" onClick={() => setEditingSponsorship({ ...s })}
+                              className="h-9 px-3 rounded-xl text-xs font-bold border-border text-foreground flex items-center gap-1.5 shadow-sm active:scale-[0.97] transition-all">
+                              <Pencil size={12} /> Edit
+                            </Button>
                             <Button type="button" variant="outline" disabled={mutatingSponsorId === s.id} onClick={() => handleToggleSponsorshipVisibility(s)}
                               className="h-9 px-4 rounded-xl text-xs font-bold border-border text-foreground flex items-center gap-1.5 shadow-sm active:scale-[0.97] transition-all">
                               {mutatingSponsorId === s.id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
@@ -1043,6 +1132,118 @@ const Admin = () => {
                   })}
                 </div>
               )}
+
+              {/* Edit Sponsorship Dialog */}
+              <Dialog open={!!editingSponsorship} onOpenChange={(open) => { if (!open) setEditingSponsorship(null); }}>
+                <DialogContent className="sm:max-w-[550px] bg-white rounded-3xl p-6 shadow-2xl">
+                  <DialogHeader>
+                    <DialogTitle className="font-display text-2xl text-foreground flex items-center gap-2">
+                      <Pencil size={20} className="text-accent" />
+                      Edit Sponsorship: {editingSponsorship?.tierName}
+                    </DialogTitle>
+                    <DialogDescription className="text-muted-foreground text-sm">
+                      Update details for this sponsorship option (price, name, perks, limit, status).
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  {editingSponsorship && (
+                    <form onSubmit={(e) => {
+                      e.preventDefault();
+                      handleUpdateSponsorship(editingSponsorship);
+                    }} className="space-y-4 mt-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Sponsorship Name *</label>
+                          <Input
+                            value={editingSponsorship.tierName || ""}
+                            onChange={(e) => setEditingSponsorship({ ...editingSponsorship, tierName: e.target.value })}
+                            className="bg-surface border-border rounded-xl focus:border-accent focus:ring-1 focus:ring-accent text-foreground"
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Price *</label>
+                          <Input
+                            value={editingSponsorship.price || ""}
+                            onChange={(e) => setEditingSponsorship({ ...editingSponsorship, price: e.target.value })}
+                            placeholder="$1,000"
+                            className="bg-surface border-border rounded-xl focus:border-accent focus:ring-1 focus:ring-accent text-foreground"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Max Limit</label>
+                          <Input
+                            type="number"
+                            min={-1}
+                            value={editingSponsorship.maxLimit}
+                            onChange={(e) => setEditingSponsorship({ ...editingSponsorship, maxLimit: Number(e.target.value) })}
+                            className="bg-surface border-border rounded-xl focus:border-accent focus:ring-1 focus:ring-accent text-foreground"
+                          />
+                          <p className="text-[11px] text-muted-foreground">Use -1 for unlimited slots.</p>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Golfer Slots</label>
+                          <Input
+                            type="number"
+                            min={0}
+                            value={editingSponsorship.numberOfGolferSlots ?? 0}
+                            onChange={(e) => setEditingSponsorship({ ...editingSponsorship, numberOfGolferSlots: Number(e.target.value) })}
+                            className="bg-surface border-border rounded-xl focus:border-accent focus:ring-1 focus:ring-accent text-foreground"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Perks (One per line)</label>
+                        <Textarea
+                          value={Array.isArray(editingSponsorship.perks) ? editingSponsorship.perks.join("\n") : (editingSponsorship.perks || "")}
+                          onChange={(e) => setEditingSponsorship({ ...editingSponsorship, perks: e.target.value.split("\n") })}
+                          className="bg-surface border-border rounded-xl min-h-[100px] focus:border-accent focus:ring-1 focus:ring-accent text-foreground"
+                          placeholder="One perk per line"
+                        />
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-6 pt-2">
+                        <div className="flex items-center gap-2">
+                          <input
+                            id="edit-featured"
+                            type="checkbox"
+                            checked={!!editingSponsorship.featured}
+                            onChange={(e) => setEditingSponsorship({ ...editingSponsorship, featured: e.target.checked })}
+                            className="w-4 h-4 rounded border-border text-accent focus:ring-accent cursor-pointer"
+                          />
+                          <label htmlFor="edit-featured" className="text-sm font-semibold text-foreground cursor-pointer">Mark as featured</label>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <input
+                            id="edit-hidden"
+                            type="checkbox"
+                            checked={!!editingSponsorship.hidden}
+                            onChange={(e) => setEditingSponsorship({ ...editingSponsorship, hidden: e.target.checked })}
+                            className="w-4 h-4 rounded border-border text-accent focus:ring-accent cursor-pointer"
+                          />
+                          <label htmlFor="edit-hidden" className="text-sm font-semibold text-foreground cursor-pointer">Hide from site</label>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end gap-3 pt-4 border-t border-border">
+                        <Button type="button" variant="outline" onClick={() => setEditingSponsorship(null)} className="rounded-full px-5">
+                          Cancel
+                        </Button>
+                        <Button type="submit" disabled={mutatingSponsorId !== null} className="rounded-full px-6 bg-accent hover:bg-accent/90 text-white font-bold">
+                          {mutatingSponsorId === editingSponsorship.id ? <Loader2 size={16} className="animate-spin mr-2" /> : <Save size={16} className="mr-2" />}
+                          Save Changes
+                        </Button>
+                      </div>
+                    </form>
+                  )}
+                </DialogContent>
+              </Dialog>
             </div>
 
           /* ── PURCHASES TAB ── */
@@ -1053,12 +1254,23 @@ const Admin = () => {
                   <h3 className="text-lg font-display text-foreground">Purchases Log</h3>
                   <p className="text-sm text-muted-foreground">View all successful and failed payment attempts.</p>
                 </div>
-                <select value={purchasesFilter} onChange={(e) => setPurchasesFilter(e.target.value as any)}
-                  className="bg-surface border-border rounded-xl px-3 py-2 text-sm focus:border-accent focus:ring-1 focus:ring-accent outline-none font-medium text-foreground">
-                  <option value="All">All Statuses</option>
-                  <option value="Success">Success</option>
-                  <option value="Failed">Failed</option>
-                </select>
+                <div className="flex items-center gap-3">
+                  <select value={purchasesFilter} onChange={(e) => setPurchasesFilter(e.target.value as any)}
+                    className="bg-surface border-border rounded-xl px-3 py-2 text-sm focus:border-accent focus:ring-1 focus:ring-accent outline-none font-medium text-foreground">
+                    <option value="All">All Statuses</option>
+                    <option value="Success">Success</option>
+                    <option value="Failed">Failed</option>
+                  </select>
+                  <Button
+                    onClick={handleExportPurchasesExcel}
+                    disabled={filteredPurchases.length === 0}
+                    variant="outline"
+                    className="rounded-xl h-10 px-4 text-sm font-bold border-border text-foreground flex items-center gap-2 "
+                  >
+                    <Download size={16} />
+                    Export to Excel
+                  </Button>
+                </div>
               </div>
 
               {purchasesLoading ? (
@@ -1084,16 +1296,7 @@ const Admin = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border">
-                        {purchases
-                          .filter(p => purchasesFilter === "All" ? true : purchasesFilter === "Success" ? p.paymentStatus === "success" : p.paymentStatus === "failed")
-                          .sort((a, b) => {
-                            if (purchasesSort === "date_desc") return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
-                            if (purchasesSort === "date_asc") return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
-                            if (purchasesSort === "amount_desc") return b.amount - a.amount;
-                            if (purchasesSort === "amount_asc") return a.amount - b.amount;
-                            return 0;
-                          })
-                          .map((p) => (
+                        {filteredPurchases.map((p) => (
                             <tr key={p.id} className="hover:bg-surface/30 transition-colors">
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground font-medium">{new Date(p.timestamp).toLocaleString()}</td>
                               <td className="px-6 py-4 text-sm">
@@ -1115,7 +1318,7 @@ const Admin = () => {
                               <td className="px-6 py-4 text-sm text-muted-foreground">{p.source}</td>
                             </tr>
                           ))}
-                        {purchases.length === 0 && (
+                        {filteredPurchases.length === 0 && (
                           <tr><td colSpan={6} className="px-6 py-12 text-center text-muted-foreground font-medium">No purchases found.</td></tr>
                         )}
                       </tbody>

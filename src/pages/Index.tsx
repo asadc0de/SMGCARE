@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+
+// ── Feature Flags ────────────────────────────────────────────────────────────
+// To re-enable, flip to `true` — no other changes needed.
+const RAFFLE_ENABLED = true;
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import {
   ArrowRight,
@@ -230,9 +234,12 @@ const Index = () => {
                   <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/10 focus:bg-white/10 font-medium py-3 rounded-lg">
                     <Link to="/golf-register?scroll=true">2026 Charity Golf Outing</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/10 focus:bg-white/10 font-medium py-3 rounded-lg">
-                    <Link to="/raffle">2026 Charity Raffle</Link>
-                  </DropdownMenuItem>
+                  {/* RAFFLE_ENABLED — restore by removing this comment block and the surrounding braces */}
+                  {RAFFLE_ENABLED && (
+                    <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/10 focus:bg-white/10 font-medium py-3 rounded-lg">
+                      <Link to="/raffle">2026 Charity Raffle</Link>
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
 

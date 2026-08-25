@@ -98,7 +98,6 @@ const GolfRegister = () => {
 
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const [selectedTier, setSelectedTier] = useState<string | null>(null);
-  const [visibleSponsorCount, setVisibleSponsorCount] = useState(6);
   const [contact, setContact] = useState(false);
   const [customDonationOpen, setCustomDonationOpen] = useState(false);
   const [registerFormOpen, setRegisterFormOpen] = useState(false);
@@ -191,14 +190,14 @@ const GolfRegister = () => {
       setDonationAmount("");
       setPaymentMethod("card");
     } else {
-       const slots = getGolferSlots();
-       setFormData(prev => {
-          const currentGolfers = [...prev.golfers];
-          while (currentGolfers.length < slots) {
-             currentGolfers.push({ name: "", email: "", phone: "" });
-          }
-          return { ...prev, golfers: currentGolfers.slice(0, Math.max(slots, 4)) };
-       });
+      const slots = getGolferSlots();
+      setFormData(prev => {
+        const currentGolfers = [...prev.golfers];
+        while (currentGolfers.length < slots) {
+          currentGolfers.push({ name: "", email: "", phone: "" });
+        }
+        return { ...prev, golfers: currentGolfers.slice(0, Math.max(slots, 4)) };
+      });
     }
   };
 
@@ -802,7 +801,7 @@ const GolfRegister = () => {
                 </p>
               </div>
 
-              <div id="registration-cards" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              <div id="registration-cards" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 max-w-6xl mx-auto items-stretch">
                 {packages.map((pkg, i) => {
                   const isSelected = selectedPackage === pkg.id;
                   let Icon = Flag;
@@ -816,7 +815,7 @@ const GolfRegister = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.6, delay: i * 0.1 }}
                       onClick={() => setSelectedPackage(pkg.id)}
-                      className={`relative rounded-3xl p-8 border-2 cursor-pointer transition-all duration-300 hover-lift ${isSelected
+                      className={`relative rounded-3xl p-8 border-2 cursor-pointer transition-all duration-300 hover-lift flex flex-col justify-between h-full ${isSelected
                         ? "bg-primary text-primary-foreground border-primary shadow-elegant"
                         : pkg.featured
                           ? "bg-[#dcdcdc] border-accent/30 shadow-md"
@@ -833,22 +832,74 @@ const GolfRegister = () => {
                           <Check className="w-4 h-4 text-white" />
                         </div>
                       )}
-                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 ${isSelected ? "bg-white/15" : "bg-gradient-gold shadow-gold"}`}>
-                        <Icon className={`w-6 h-6 ${isSelected ? "text-white" : "text-accent-foreground"}`} strokeWidth={1.5} />
+                      <div>
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 ${isSelected ? "bg-white/15" : "bg-gradient-gold shadow-gold"}`}>
+                          <Icon className={`w-6 h-6 ${isSelected ? "text-white" : "text-accent-foreground"}`} strokeWidth={1.5} />
+                        </div>
+                        <div className="min-h-[44px] flex flex-col justify-end mb-2">
+                          <p className={`text-xs uppercase tracking-[0.25em] font-black ${isSelected ? "text-white/60" : "text-accent"}`}>{pkg.title}</p>
+                        </div>
+                        <div className="min-h-[48px] flex items-center mb-6">
+                          <div className={`font-display text-4xl lg:text-5xl leading-none ${isSelected ? "text-white" : "text-primary"}`}>{pkg.price}</div>
+                        </div>
+                        <ul className={`space-y-2.5 text-sm ${isSelected ? "text-white/80" : "text-muted-foreground"}`}>
+                          {pkg.includes?.map((item: string) => (
+                            <li key={item} className="flex items-center gap-2">
+                              <Check className={`w-3.5 h-3.5 flex-shrink-0 ${isSelected ? "text-white/60" : "text-accent"}`} />
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
                       </div>
-                      <p className={`text-xs uppercase tracking-[0.25em] font-black mb-2 ${isSelected ? "text-white/60" : "text-accent"}`}>{pkg.title}</p>
-                      <div className={`font-display text-5xl leading-none mb-6 ${isSelected ? "text-white" : "text-primary"}`}>{pkg.price}</div>
-                      <ul className={`space-y-2.5 text-sm ${isSelected ? "text-white/80" : "text-muted-foreground"}`}>
-                        {pkg.includes?.map((item: string) => (
-                          <li key={item} className="flex items-center gap-2">
-                            <Check className={`w-3.5 h-3.5 flex-shrink-0 ${isSelected ? "text-white/60" : "text-accent"}`} />
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
+                      <div className="mt-auto pt-4" />
                     </motion.div>
                   );
                 })}
+
+                {/* 4th Card: Additional Sponsorship Options */}
+                <motion.div
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 3 * 0.1 }}
+                  onClick={() => {
+                    setActiveTab("sponsor");
+                    requestAnimationFrame(() => {
+                      document.getElementById("registration-cards")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    });
+                  }}
+                  className="relative rounded-3xl p-8 border-2 cursor-pointer transition-all duration-300 hover-lift bg-[#dcdcdc] border-border hover:border-accent/40 flex flex-col justify-between h-full group"
+                >
+                  <div>
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-6 bg-gradient-gold shadow-gold">
+                      <Trophy className="w-6 h-6 text-accent-foreground" strokeWidth={1.5} />
+                    </div>
+                    <div className="min-h-[44px] flex flex-col justify-end mb-2">
+                      <p className="text-xs uppercase tracking-[0.25em] font-black text-accent mb-0.5">SPONSORSHIPS</p>
+                      <h3 className="font-display text-base sm:text-lg leading-snug text-primary font-bold">More Ways to Sponsor</h3>
+                    </div>
+                    <div className="min-h-[48px] flex items-center mb-6">
+                      <div className="font-display text-2xl lg:text-3xl font-bold leading-none text-[#14356C]">$275 – $10,000</div>
+                    </div>
+                    <ul className="space-y-2.5 text-sm text-muted-foreground">
+                      <li className="flex items-center gap-2">
+                        <Check className="w-3.5 h-3.5 flex-shrink-0 text-accent" />
+                        Event, Cocktail, & Cart Sponsorships
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="w-3.5 h-3.5 flex-shrink-0 text-accent" />
+                        Hole & Tee Sign Options
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="w-3.5 h-3.5 flex-shrink-0 text-accent" />
+                        Includes golfer packages & benefits
+                      </li>
+                    </ul>
+                  </div>
+                  <div className="mt-auto pt-4 border-t border-black/10 flex items-center justify-between text-xs font-black uppercase tracking-wider text-accent group-hover:text-primary transition-colors">
+                    <span>View All Sponsorships</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </div>
+                </motion.div>
               </div>
 
               <div className="flex flex-col sm:flex-row justify-center mt-12 gap-4">
@@ -914,7 +965,7 @@ const GolfRegister = () => {
                     </ul>
                   </div>
                 </motion.div>
-                {tiers.slice(0, visibleSponsorCount).map((s, i) => {
+                {tiers.map((s, i) => {
                   const isSelected = selectedTier === s.id;
                   const soldCount = s.soldCount ?? 0;
                   const reservedCount = s.reservedCount ?? 0;
@@ -931,7 +982,7 @@ const GolfRegister = () => {
                       key={s.id}
                       initial={{ opacity: 0, y: 40 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: i * 0.04 }}
+                      transition={{ duration: 0.4, delay: Math.min(i * 0.03, 0.3) }}
                       onClick={() => {
                         if (isSoldOut) return;
 
@@ -940,17 +991,15 @@ const GolfRegister = () => {
                           document.getElementById("sponsor-cta-button")?.scrollIntoView({ behavior: "smooth", block: "center" });
                         });
                       }}
-                      className={`relative rounded-3xl border-2 overflow-hidden transition-all duration-300 ${
-                        isSoldOut
+                      className={`relative rounded-3xl border-2 overflow-hidden transition-all duration-300 ${isSoldOut
                           ? "grayscale opacity-55 cursor-not-allowed"
                           : "cursor-pointer hover-lift"
-                      } ${
-                        isSelected
+                        } ${isSelected
                           ? "bg-primary text-primary-foreground border-primary shadow-elegant"
                           : s.featured
                             ? "bg-[#dcdcdc] border-accent/30 shadow-md"
                             : "bg-[#dcdcdc] border-border hover:border-accent/40"
-                      }`}
+                        }`}
                     >
                       {/* Sold-out overlay */}
                       {isSoldOut && (
@@ -996,9 +1045,8 @@ const GolfRegister = () => {
                         <div className={`font-display text-4xl leading-none mb-3 ${isSelected ? "text-white" : "text-[#72a8ff]"}`}>{s.price}</div>
 
                         {/* ── Availability indicator ──────────────────────── */}
-                        <div className={`flex items-center gap-1.5 text-xs mb-3 pb-3 border-b ${
-                          isSelected ? "border-white/15" : "border-black/10"
-                        }`}>
+                        <div className={`flex items-center gap-1.5 text-xs mb-3 pb-3 border-b ${isSelected ? "border-white/15" : "border-black/10"
+                          }`}>
                           {isSoldOut ? (
                             <><XCircle className="w-3.5 h-3.5 text-red-500 flex-shrink-0" /><span className="font-black text-red-500 uppercase tracking-wide">Sold Out</span></>
                           ) : isUnlimited ? (
@@ -1021,9 +1069,8 @@ const GolfRegister = () => {
                         {!isUnlimited && !isSoldOut && maxLimit > 1 && (
                           <div className={`h-1 rounded-full overflow-hidden mb-4 ${isSelected ? "bg-white/20" : "bg-black/10"}`}>
                             <div
-                              className={`h-full rounded-full transition-all duration-700 ${
-                                isLastOne ? "bg-amber-500 animate-pulse" : isLow ? "bg-amber-400" : isSelected ? "bg-white/60" : "bg-accent"
-                              }`}
+                              className={`h-full rounded-full transition-all duration-700 ${isLastOne ? "bg-amber-500 animate-pulse" : isLow ? "bg-amber-400" : isSelected ? "bg-white/60" : "bg-accent"
+                                }`}
                               style={{ width: `${Math.max(6, (remaining / maxLimit) * 100)}%` }}
                             />
                           </div>
@@ -1042,20 +1089,6 @@ const GolfRegister = () => {
                   );
                 })}
               </div>
-
-              {visibleSponsorCount < tiers.length && (
-                <div className="flex justify-center mt-10">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="lg"
-                    onClick={() => setVisibleSponsorCount((count) => Math.min(count + 6, tiers.length))}
-                    className="rounded-full px-8 md:px-10 h-14 md:h-16 text-base md:text-lg font-black border-primary/20 text-primary hover:bg-primary hover:text-primary-foreground"
-                  >
-                    See more
-                  </Button>
-                </div>
-              )}
 
               <div className="flex flex-col sm:flex-row justify-center mt-12 gap-4">
                 <Button
@@ -1160,7 +1193,7 @@ const GolfRegister = () => {
                 {getGolferSlots() > 0 && (
                   <div className="space-y-2">
                     <Label className="text-primary font-semibold">Number of Participants</Label>
-                    <select 
+                    <select
                       className="w-full rounded-xl border border-input bg-white px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                       value={formData.golfers.length}
                       onChange={(e) => {
@@ -1182,7 +1215,7 @@ const GolfRegister = () => {
                     </select>
                   </div>
                 )}
-                
+
                 <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                   {formData.golfers.map((golfer: any, i) => (
                     <div key={i} className="space-y-4 p-5 border border-gray-200 rounded-2xl bg-white relative shadow-sm">
@@ -1256,11 +1289,10 @@ const GolfRegister = () => {
                     <div className="grid grid-cols-2 gap-3">
                       <button
                         onClick={() => { setPaymentMethod("card"); setPaymentError(null); }}
-                        className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all duration-200 cursor-pointer ${
-                          paymentMethod === "card"
+                        className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all duration-200 cursor-pointer ${paymentMethod === "card"
                             ? "border-primary bg-primary/5 shadow-md"
                             : "border-border hover:border-primary/40 bg-white"
-                        }`}
+                          }`}
                       >
                         <CreditCard className={`w-6 h-6 ${paymentMethod === "card" ? "text-primary" : "text-muted-foreground"}`} />
                         <span className={`text-sm font-black uppercase tracking-wide ${paymentMethod === "card" ? "text-primary" : "text-muted-foreground"}`}>Credit Card</span>
@@ -1273,11 +1305,10 @@ const GolfRegister = () => {
                           cardElementsRef.current = null;
                           setCardReady(false);
                         }}
-                        className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all duration-200 cursor-pointer ${
-                          paymentMethod === "check"
+                        className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all duration-200 cursor-pointer ${paymentMethod === "check"
                             ? "border-primary bg-primary/5 shadow-md"
                             : "border-border hover:border-primary/40 bg-white"
-                        }`}
+                          }`}
                       >
                         <Mail className={`w-6 h-6 ${paymentMethod === "check" ? "text-primary" : "text-muted-foreground"}`} />
                         <span className={`text-sm font-black uppercase tracking-wide ${paymentMethod === "check" ? "text-primary" : "text-muted-foreground"}`}>Pay by Check</span>
@@ -1310,7 +1341,7 @@ const GolfRegister = () => {
                         <div className="flex items-center justify-between px-3.5 py-2 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
                           <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
                             <svg className="w-3.5 h-3.5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd"/>
+                              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                             </svg>
                             Secure Card Entry
                           </span>
@@ -1366,7 +1397,7 @@ const GolfRegister = () => {
                       {paymentError && (
                         <div className="flex items-start gap-2 text-red-600 text-sm font-medium p-3 bg-red-50 rounded-xl border border-red-200">
                           <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                           </svg>
                           {paymentError}
                         </div>

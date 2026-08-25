@@ -14,6 +14,10 @@ import e1 from "@/assets/event-2025.jpg";
 import g3 from "@/assets/gallery-3.jpg";
 import philByerPortrait from "@/assets/phil-byer.jpg";
 
+// ── Feature Flags ────────────────────────────────────────────────────────────
+// To re-enable Phil Byer honoree section, flip to `true` — no other changes needed.
+const HONOREE_ENABLED = false;
+
 // ── Static sponsorship definitions (merged with live Firestore data) ───────────
 // maxLimit: -1 = unlimited
 const defaultSponsorships = [
@@ -155,8 +159,11 @@ const Golf = () => {
       <section className="relative min-h-[100svh] flex items-center overflow-hidden bg-primary">
         <div className="absolute inset-0">
           <img src={golfHero} alt="Golf Hero" className="w-full h-full object-cover scale-105" />
-          <div className="absolute inset-0 bg-primary/40" />
-          <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/95 to-transparent" />
+          {/* Lighter base tint so the course shows through on the right */}
+          <div className="absolute inset-0 bg-primary/20" />
+          {/* Left-to-right: text side stays dark, card side is transparent */}
+          <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/70 to-transparent" />
+          {/* Bottom fade to anchor the section */}
           <div className="absolute inset-0 bg-gradient-to-t from-primary via-transparent to-transparent" />
         </div>
         <div className="absolute inset-0 floral-pattern opacity-[0.05] mix-blend-overlay" />
@@ -209,40 +216,67 @@ const Golf = () => {
                 <motion.div animate={{ rotate: 360 }} transition={{ duration: 25, repeat: Infinity, ease: "linear" }} className="absolute -inset-12 md:-inset-16 border border-accent/20 rounded-[5rem] -rotate-12 pointer-events-none" />
                 <div className="relative z-10 w-full bg-gradient-navy rounded-[3rem] border border-white/10 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] flex flex-col items-center p-6 md:p-8 text-center overflow-hidden">
                   <div className="absolute inset-0 floral-pattern opacity-10 pointer-events-none" />
-                  
-                  {/* Portrait and Logo Container */}
-                  <div className="relative flex flex-row items-center gap-4 mb-6 z-10">
-                    {/* Portrait Image */}
-                    <div className="w-28 h-28 md:w-32 md:h-32 rounded-full border-2 border-accent/40 overflow-hidden shadow-lg flex-shrink-0 bg-primary/45">
-                      <img src={philByerPortrait} alt="Phil Byer" className="w-full h-full object-cover object-top" />
+
+                  {/* HONOREE_ENABLED — flip the flag above to restore Phil Byer portrait, bio, and flyer button */}
+                  {HONOREE_ENABLED ? (
+                    <>
+                      {/* Portrait and Logo Container */}
+                      <div className="relative flex flex-row items-center gap-4 mb-6 z-10">
+                        {/* Portrait Image */}
+                        <div className="w-28 h-28 md:w-32 md:h-32 rounded-full border-2 border-accent/40 overflow-hidden shadow-lg flex-shrink-0 bg-primary/45">
+                          <img src={philByerPortrait} alt="Phil Byer" className="w-full h-full object-cover object-top" />
+                        </div>
+
+                        {/* Accompanying "Annual Prestige" Logo/Wordmark */}
+                        <div className="flex flex-col items-center text-center bg-white/5 backdrop-blur-md rounded-2xl p-3 border border-white/10 w-24">
+                          <Trophy className="text-accent-soft mb-1 flex-shrink-0" size={18} />
+                          <p className="text-[8px] uppercase tracking-[0.25em] font-black text-accent-soft leading-none">Annual</p>
+                          <h4 className="font-display text-sm text-white leading-tight font-bold mt-1">Prestige</h4>
+                        </div>
+                      </div>
+
+                      {/* Honoree Details */}
+                      <div className="relative z-10 flex flex-col items-center">
+                        <h3 className="font-display text-lg md:text-xl text-white font-bold leading-snug tracking-tight px-2 mb-3">
+                          SMG Cares 2026 Annual Golf Outing Honoree: <span className="italic text-[#72a8ff]">Phil Byer</span> – Schulman Insurance
+                        </h3>
+
+                        <p className="text-xs md:text-sm text-white/70 leading-relaxed font-normal mb-6 px-1">
+                          SMG CARES is proud to recognize Phil Byer as the Honoree of our 2026 Annual Charity Golf Outing. In recognition of his years of generosity, community involvement, and steadfast support of SMG CARES, we are honored to celebrate his outstanding contributions.
+                        </p>
+
+                        {/* View Official Flyer Button */}
+                        <Button asChild className="bg-gradient-gold text-accent-foreground font-black hover:scale-105 transition-transform rounded-full px-6 py-2 h-10 text-xs uppercase tracking-wider">
+                          <a href="/assets/documents/smg-cares-2026-honoree-flyer.pdf" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                            <FileText size={14} />
+                            View Official Flyer
+                          </a>
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    /* Original "Annual Prestige" badge — shown when HONOREE_ENABLED is false */
+                    <div className="relative z-10 flex flex-col items-center py-16 md:py-20 px-4 w-full">
+                      {/* Trophy icon with glow ring */}
+                      <div className="relative mb-8">
+                        <div className="absolute inset-0 rounded-full bg-accent/10 blur-xl scale-150" />
+                        <Trophy className="relative text-white/80" size={72} strokeWidth={1.25} />
+                      </div>
+                      {/* "ANNUAL" eyebrow */}
+                      <p className="text-[10px] uppercase tracking-[0.45em] font-black text-accent-soft leading-none mb-3">
+                        Annual
+                      </p>
+                      {/* "Prestige" headline */}
+                      <h4 className="font-display text-5xl md:text-6xl text-white leading-none font-bold tracking-tight">
+                        Prestige
+                      </h4>
+                      {/* subtle divider */}
+                      <div className="w-16 h-px bg-white/15 my-6" />
+                      <p className="text-xs text-white/40 uppercase tracking-[0.25em] font-semibold">
+                        2026 Golf Outing
+                      </p>
                     </div>
-
-                    {/* Accompanying "Annual Prestige" Logo/Wordmark */}
-                    <div className="flex flex-col items-center text-center bg-white/5 backdrop-blur-md rounded-2xl p-3 border border-white/10 w-24">
-                      <Trophy className="text-accent-soft mb-1 flex-shrink-0" size={18} />
-                      <p className="text-[8px] uppercase tracking-[0.25em] font-black text-accent-soft leading-none">Annual</p>
-                      <h4 className="font-display text-sm text-white leading-tight font-bold mt-1">Prestige</h4>
-                    </div>
-                  </div>
-
-                  {/* Honoree Details */}
-                  <div className="relative z-10 flex flex-col items-center">
-                    <h3 className="font-display text-lg md:text-xl text-white font-bold leading-snug tracking-tight px-2 mb-3">
-                      SMG Cares 2026 Annual Golf Outing Honoree: <span className="italic text-[#72a8ff]">Phil Byer</span> – Schulman Insurance
-                    </h3>
-                    
-                    <p className="text-xs md:text-sm text-white/70 leading-relaxed font-normal mb-6 px-1">
-                      SMG CARES is proud to recognize Phil Byer as the Honoree of our 2026 Annual Charity Golf Outing. In recognition of his years of generosity, community involvement, and steadfast support of SMG CARES, we are honored to celebrate his outstanding contributions.
-                    </p>
-
-                    {/* View Official Flyer Button */}
-                    <Button asChild className="bg-gradient-gold text-accent-foreground font-black hover:scale-105 transition-transform rounded-full px-6 py-2 h-10 text-xs uppercase tracking-wider">
-                      <a href="/assets/documents/smg-cares-2026-honoree-flyer.pdf" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
-                        <FileText size={14} />
-                        View Official Flyer
-                      </a>
-                    </Button>
-                  </div>
+                  )}
                 </div>
               </div>
             </motion.div>

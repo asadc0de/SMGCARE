@@ -9,14 +9,19 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import smgLogo from "@/assets/logo.webp";
 import { NavLink } from "./NavLink";
 
-const links = [
+// ── Feature Flags ────────────────────────────────────────────────────────────
+// To re-enable, flip to `true` — no other changes needed.
+const RAFFLE_ENABLED = true;
+
+const allLinks = [
   { to: "/", label: "Home" },
   { to: "/about", label: "About Us" },
   { to: "/events", label: "Recent Events" },
   { to: "/golf", label: "2026 Golf Fundraiser" },
-  { to: "/raffle", label: "2026 Raffle" },
+  { to: "/raffle", label: "2026 Raffle", flag: "raffle" },
   { to: "/gallery", label: "Gallery" },
 ];
+const links = allLinks.filter(l => l.flag !== "raffle" || RAFFLE_ENABLED);
 
 export const SiteNav = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -99,9 +104,12 @@ export const SiteNav = () => {
                 <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/10 focus:bg-white/10 font-medium">
                   <Link to="/golf-register?scroll=true">2026 Charity Golf Outing</Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/10 focus:bg-white/10 font-medium">
-                  <Link to="/raffle">2026 Charity Raffle</Link>
-                </DropdownMenuItem>
+                {/* RAFFLE_ENABLED — restore by removing this comment block and the surrounding braces */}
+                {RAFFLE_ENABLED && (
+                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-white/10 focus:bg-white/10 font-medium">
+                    <Link to="/raffle">2026 Charity Raffle</Link>
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
             <button onClick={() => setOpen(o => !o)} className="lg:hidden p-1.5 text-white" aria-label="Menu">
@@ -128,7 +136,10 @@ export const SiteNav = () => {
                 <div className="flex flex-col gap-2 mt-2">
                   <Button onClick={() => { setOpen(false); setDonationOpen(true); }} className="bg-gradient-gold text-accent-foreground rounded-full w-full">Donate to SMG Cares</Button>
                   <Button asChild variant="outline" className="bg-white/5 border-white/20 text-white hover:bg-white/10 rounded-full w-full"><Link to="/golf-register?scroll=true">2026 Charity Golf Outing</Link></Button>
-                  <Button asChild variant="outline" className="bg-white/5 border-white/20 text-white hover:bg-white/10 rounded-full w-full" onClick={() => setOpen(false)}><Link to="/raffle">2026 Charity Raffle</Link></Button>
+                  {/* RAFFLE_ENABLED — restore by removing this comment block and the surrounding braces */}
+                  {RAFFLE_ENABLED && (
+                    <Button asChild variant="outline" className="bg-white/5 border-white/20 text-white hover:bg-white/10 rounded-full w-full" onClick={() => setOpen(false)}><Link to="/raffle">2026 Charity Raffle</Link></Button>
+                  )}
                 </div>
               </div>
             </motion.div>

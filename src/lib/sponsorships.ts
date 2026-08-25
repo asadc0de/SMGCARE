@@ -49,9 +49,14 @@ export const buildSponsorshipRows = (
       return [];
     }
 
+    const tierName = record?.tierName || s.tierName;
+    const price = record?.price || s.price;
+
     return [{
       ...s,
-      tier: s.tierName,
+      tierName,
+      tier: tierName,
+      price,
       soldCount: record?.soldCount ?? 0,
       reservedCount: record?.reservedCount ?? 0,
       maxLimit: record?.maxLimit ?? s.maxLimit,

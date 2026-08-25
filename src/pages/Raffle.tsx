@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { PageShell } from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { CustomDonationModal } from "@/components/CustomDonationModal";
 import { RafflePaymentDialog } from "@/components/RafflePaymentDialog";
-import { Gift, Sparkles, ArrowRight, CheckCircle2, ShieldCheck, Ticket, ExternalLink, RefreshCw, Heart } from "lucide-react";
+import { Gift, Sparkles, ArrowRight, CheckCircle2, ShieldCheck, Ticket, ExternalLink, RefreshCw, Heart, Eye } from "lucide-react";
 import { motion } from "framer-motion";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -11,10 +12,8 @@ import { toast } from "sonner";
 
 // Import generated assets
 import raffleHeroBg from "@/assets/raffle-hero-bg.png";
-import raffleGolfBag from "@/assets/raffle-golf-bag.png";
-import raffleWatch from "@/assets/raffle-watch.png";
-import raffleResort from "@/assets/raffle-resort.png";
-import raffleDining from "@/assets/raffle-dining.png";
+import raffleRolex from "@/assets/image copy.png";
+import raffleNecklace from "@/assets/image.png";
 
 // ── CONFIGURABLE CONSTANTS ───────────────────────────────────────────────────
 // Board Size & Pricing Configuration
@@ -30,39 +29,32 @@ const RAFFLE_SPONSOR = {
   buttonText: "Visit Their Website",
 };
 
-// Featured Display-Only Prizes (Placeholder Framework)
-const FEATURED_PRIZES = [
+// Featured Display-Only Prizes
+interface FeaturedPrize {
+  id: number;
+  title: string;
+  shortDescription: string;
+  description: string;
+  image: string;
+  specs: string[] | null;
+}
+
+const FEATURED_PRIZES: FeaturedPrize[] = [
   {
     id: 1,
-    title: "Luxury Tropical Resort Retreat",
-    tag: "Sample Prize — Replace With Final Item",
-    description: "A 4-night luxury getaway at an oceanfront resort including flight vouchers, fine dining, and spa access.",
-    image: raffleResort,
-    value: "Value: $5,000",
+    title: "Win a Rolex Sky-Dweller",
+    shortDescription: "One of Rolex's most iconic timepieces — a 42 mm Sky-Dweller in White Rolesor with a bright blue dial and Oyster bracelet.",
+    description: "You could take home one of Rolex's most sophisticated and iconic timepieces, the Rolex Oyster Perpetual Sky-Dweller. This stunning Sky-Dweller features a bright blue dial, 42 mm White Rolesor case combining Oystersteel and 18 ct white gold, Rolex's signature fluted Ring Command bezel, and classic Oyster bracelet. Designed with the world traveler in mind, the Sky-Dweller features dual time zones and Rolex's innovative annual calendar, all powered by Rolex's self-winding movement with approximately 72 hours of power reserve. With its unmistakable blue dial and signature Rolex styling, this is an incredible opportunity to win a truly exceptional luxury timepiece.",
+    image: raffleRolex,
+    specs: ["Rolex Sky-Dweller Ref. 336934", "Bright Blue Dial", "Oyster Bracelet", "42 mm"],
   },
   {
     id: 2,
-    title: "Mastercrafted Automatic Timepiece",
-    tag: "Sample Prize — Replace With Final Item",
-    description: "An elegant, limited-edition Swiss automatic chronograph with custom leather strap and sapphire crystal.",
-    image: raffleWatch,
-    value: "Value: $4,200",
-  },
-  {
-    id: 3,
-    title: "Tour-Grade Golf Equipment Package",
-    tag: "Sample Prize — Replace With Final Item",
-    description: "Custom-fitted gold-accented driver, signature tour bag, championship iron set, and tour-spec golf balls.",
-    image: raffleGolfBag,
-    value: "Value: $2,500",
-  },
-  {
-    id: 4,
-    title: "Private Chef Gastronomy Tasting Dinner",
-    tag: "Sample Prize — Replace With Final Item",
-    description: "An exclusive 5-course gourmet tasting dinner prepared in your home by an award-winning chef for up to eight guests.",
-    image: raffleDining,
-    value: "Value: $1,800",
+    title: "Win a 2.12 Carat Diamond Necklace",
+    shortDescription: "A stunning five-diamond necklace featuring 2.12 total carats of fancy-shaped diamonds on a 14K white gold chain.",
+    description: "You could win this stunning five-diamond necklace featuring 2.12 total carats of fancy-shaped diamonds set on an elegant 14 karat white gold chain. Featuring five individually set diamonds in a beautiful assortment of shapes, the necklace creates a unique combination of brilliance, dimension and timeless elegance. The mixed diamond cuts form a sophisticated centerpiece that is equally suited for a special occasion or an elevated everyday look. A beautiful piece of fine jewelry and an unforgettable prize to take home from the SMG Cares Golf Outing.",
+    image: raffleNecklace,
+    specs: ["Five Multi-Shaped Fancy Diamonds", "2.12 Total Carat Weight", "14 Karat White Gold Chain"],
   },
 ];
 
@@ -72,6 +64,7 @@ const Raffle = () => {
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
   const [soldNumbers, setSoldNumbers] = useState<number[]>([]);
   const [isLoadingBoard, setIsLoadingBoard] = useState(true);
+  const [selectedPrize, setSelectedPrize] = useState<FeaturedPrize | null>(null);
 
   // ── Real-Time Firestore Synchronization for Sold Numbers ─────────────────
   useEffect(() => {
@@ -237,18 +230,19 @@ const Raffle = () => {
           </p>
         </div>
 
-        {/* Prize Cards Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-          {FEATURED_PRIZES.map((item) => (
+        {/* Prize Cards — 2 centered cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8 max-w-3xl mx-auto">
+          {FEATURED_PRIZES.map((item, idx) => (
             <motion.div
               key={item.id}
               initial={{ opacity: 0, y: 25 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="relative rounded-3xl border border-black/10 flex flex-col overflow-hidden bg-white shadow-soft group hover:border-accent/40 transition-all duration-300"
+              transition={{ duration: 0.5, delay: idx * 0.1 }}
+              onClick={() => setSelectedPrize(item)}
+              className="relative rounded-2xl md:rounded-3xl border border-black/8 flex flex-col overflow-hidden bg-white shadow-soft group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
             >
-              {/* Image Container */}
+              {/* Image */}
               <div className="relative aspect-[4/3] w-full overflow-hidden bg-primary/5">
                 <img
                   src={item.image}
@@ -256,40 +250,90 @@ const Raffle = () => {
                   loading="lazy"
                   className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-primary/60 via-transparent to-transparent opacity-70" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
 
-                {/* Display Only Tag */}
-                <div className="absolute top-3 left-3 bg-primary/85 backdrop-blur-md rounded-full px-3 py-1 border border-white/15 shadow-sm">
-                  <span className="text-[9px] uppercase tracking-wider text-amber-300 font-extrabold flex items-center gap-1">
-                    <Sparkles size={10} /> {item.tag}
-                  </span>
-                </div>
-
-                {/* Value Pill */}
-                <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-md rounded-full px-3 py-1 shadow-md border border-black/5">
-                  <span className="text-xs font-black text-primary tracking-wide">{item.value}</span>
+                {/* Title overlay */}
+                <div className="absolute bottom-0 left-0 right-0 p-4 md:p-5">
+                  <h3 className="font-display text-lg md:text-xl text-white font-bold tracking-tight leading-snug drop-shadow-lg">
+                    {item.title}
+                  </h3>
                 </div>
               </div>
 
-              {/* Card Details */}
-              <div className="p-6 flex flex-col flex-grow">
-                <h3 className="font-display text-xl text-primary font-bold tracking-tight mb-2 leading-snug group-hover:text-accent transition-colors">
-                  {item.title}
-                </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed flex-grow font-medium">
-                  {item.description}
+              {/* Card Body */}
+              <div className="p-4 md:p-5 flex flex-col gap-3 flex-grow">
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed font-medium line-clamp-2">
+                  {item.shortDescription}
                 </p>
 
-                <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-semibold">
-                  <span className="flex items-center gap-1.5 text-accent">
-                    <Gift size={14} /> Display Showcase
+                <div className="mt-auto flex items-center justify-between pt-3 border-t border-slate-100">
+                  <span className="flex items-center gap-1.5 text-xs text-accent font-bold">
+                    <Gift size={14} /> Prize Drawing
                   </span>
-                  <span className="text-slate-400">Included in Board Drawing</span>
+                  <span className="flex items-center gap-1.5 text-xs text-primary/60 font-semibold group-hover:text-accent transition-colors">
+                    View Details <ArrowRight size={12} />
+                  </span>
                 </div>
               </div>
             </motion.div>
           ))}
         </div>
+
+        {/* ── Prize Detail Dialog ──────────────────────────────────────────── */}
+        <Dialog open={!!selectedPrize} onOpenChange={(open) => !open && setSelectedPrize(null)}>
+          <DialogContent className="max-w-3xl p-0 overflow-hidden rounded-2xl md:rounded-3xl border-0 shadow-2xl gap-0">
+            {selectedPrize && (
+              <div className="flex flex-col md:flex-row">
+                {/* Left — Image */}
+                <div className="relative w-full md:w-[45%] aspect-[4/3] md:aspect-auto md:min-h-[400px] overflow-hidden shrink-0 bg-primary/5">
+                  <img
+                    src={selectedPrize.image}
+                    alt={selectedPrize.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-black/30 via-transparent to-transparent" />
+                </div>
+
+                {/* Right — Content */}
+                <div className="flex-1 p-6 md:p-8 flex flex-col">
+                  <DialogHeader className="mb-5">
+                    <div className="inline-flex items-center gap-1.5 text-accent text-[10px] uppercase tracking-widest font-black mb-2">
+                      <Sparkles size={12} /> Featured Prize
+                    </div>
+                    <DialogTitle className="font-display text-xl md:text-2xl text-primary leading-tight tracking-tight">
+                      {selectedPrize.title}
+                    </DialogTitle>
+                  </DialogHeader>
+
+                  <DialogDescription asChild>
+                    <div className="flex flex-col flex-grow">
+                      <p className="text-sm text-muted-foreground leading-relaxed font-medium">
+                        {selectedPrize.description}
+                      </p>
+
+                      {/* Specs */}
+                      {selectedPrize.specs && (
+                        <ul className="mt-5 space-y-2">
+                          {selectedPrize.specs.map((spec) => (
+                            <li key={spec} className="bg-slate-50 rounded-lg px-3.5 py-2 flex items-center gap-2.5 border border-slate-100">
+                              <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />
+                              <span className="text-xs md:text-sm text-primary font-semibold">{spec}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+
+                      <div className="mt-auto pt-5 border-t border-slate-100 flex items-center gap-2 text-xs text-slate-500 font-semibold">
+                        <Gift size={14} className="text-accent shrink-0" />
+                        <span>Included in Board Drawing — Winners drawn live at the 2026 Golf Outing Dinner</span>
+                      </div>
+                    </div>
+                  </DialogDescription>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </section>
 
       {/* ── NUMBERED BOARD GRID ("BUY A BOARD BOX NUMBER") ──────────────────── */}
