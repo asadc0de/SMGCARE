@@ -163,46 +163,85 @@ export function RafflePaymentDialog({
   const sendCheckEmail = async () => {
     const response = await fetch("https://api.web3forms.com/submit", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
       body: JSON.stringify({
         access_key: WEB3FORMS_ACCESS_KEY,
         subject: `Check Reservation — 2026 Raffle Boxes — SMG Cares`,
+        from_name: "SMG Cares Charity Raffle",
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
+        address: formData.address,
         message: `
 Raffle Box Numbers: #${selectedNumbers.slice().sort((a, b) => a - b).join(", #")}
-Amount: $${baseAmount.toLocaleString()}
+Box Count: ${selectedNumbers.length}
+Total Check Amount Due: $${baseAmount.toFixed(2)}
 Payment Method: Check
-Status: Pending
+Status: Pending Confirmation
 
-Please mail check payable to SMG CARES INC.
+Please mail check payable to:
+SMG CARES INC.
 300 CORPORATE PLAZA, ISLANDIA, NY 11749
 within 10 calendar days.
+
+Buyer Information:
+Name: ${formData.name}
+Email: ${formData.email}
+Phone: ${formData.phone || "N/A"}
+Address: ${formData.address || "N/A"}
         `.trim(),
       }),
     });
-    const data = await response.json();
-    if (!response.ok || !data.success) throw new Error(data.message || "Email failed");
+    const data = await response.json().catch(() => null);
+    if (!response.ok || (data && !data.success)) {
+      throw new Error(data?.message || "Failed to send check confirmation email");
+    }
   };
 
   // ── Send card confirmation email ──────────────────────────────────────────
   const sendCardEmail = async (chargeRef: string) => {
     try {
-      await fetch("https://api.web3forms.com/submit", {
+      const response = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
         body: JSON.stringify({
           access_key: WEB3FORMS_ACCESS_KEY,
           subject: `2026 Raffle Ticket Receipt — SMG Cares`,
+          from_name: "SMG Cares Charity Raffle",
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
-          message: `Raffle Box Numbers: #${selectedNumbers.slice().sort((a, b) => a - b).join(", #")}\nTotal Paid: $${total.toLocaleString()}\nPayment Method: Credit Card (Clover)\nTransaction ID: ${chargeRef}`,
+          address: formData.address,
+          message: `
+Raffle Box Numbers: #${selectedNumbers.slice().sort((a, b) => a - b).join(", #")}
+Box Count: ${selectedNumbers.length}
+Base Amount: $${baseAmount.toFixed(2)}
+Processing Fee (2.75%): $${fee.toFixed(2)}
+Total Charged: $${total.toFixed(2)}
+Payment Method: Credit Card (Clover)
+Transaction ID: ${chargeRef}
+Status: Confirmed / Paid
+
+Buyer Information:
+Name: ${formData.name}
+Email: ${formData.email}
+Phone: ${formData.phone || "N/A"}
+Address: ${formData.address || "N/A"}
+          `.trim(),
         }),
       });
+      const data = await response.json().catch(() => null);
+      if (!response.ok || (data && !data.success)) {
+        console.warn("Web3Forms card email warning:", data?.message || response.statusText);
+      }
     } catch (e) {
-      console.warn("Web3Forms card email warning:", e);
+      console.warn("Web3Forms card email error:", e);
     }
   };
 
@@ -421,7 +460,7 @@ within 10 calendar days.
             </div>
             <div className="mt-3 pt-3 border-t border-white/10 flex justify-between items-center text-sm">
               <span className="text-white/70">Subtotal ({selectedNumbers.length} × ${ticketPrice})</span>
-              <span className="font-bold text-white">${baseAmount.toLocaleString()}</span>
+              <span className="font-bold text-white">${baseAmount.toFixed(2)}</span>
             </div>
           </div>
         )}
@@ -590,18 +629,18 @@ within 10 calendar days.
                   </div>
                 </div>
 
-                <div className="p-3 rounded-2xl bg-white/5 border border-white/10 text-xs space-y-1 text-white/80">
-                  <div className="flex justify-between">
-                    <span>Tickets Subtotal</span>
-                    <span>${baseAmount.toLocaleString()}</span>
+                <div className="p-3 rounded-2xl bg-white/5 border border-white/10 text-xs space-y-1.5 text-white/80">
+                  <div className="flex justify-between text-white/70">
+                    <span>Base Amount</span>
+                    <span>${baseAmount.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-white/60">
-                    <span>Card Processing Fee (2.75%)</span>
-                    <span>${fee.toFixed(2)}</span>
+                  <div className="flex justify-between text-white/70">
+                    <span>Processing Fee (2.75%)</span>
+                    <span>+${fee.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between font-bold text-white text-sm pt-1 border-t border-white/10">
-                    <span>Total Charge</span>
-                    <span className="text-accent">${total.toLocaleString()}</span>
+                  <div className="flex justify-between font-black text-white text-sm pt-1.5 border-t border-white/10">
+                    <span>Total Charged</span>
+                    <span className="text-accent">${total.toFixed(2)}</span>
                   </div>
                 </div>
 
@@ -625,7 +664,7 @@ within 10 calendar days.
                         <Loader2 className="w-5 h-5 animate-spin" /> Processing...
                       </span>
                     ) : (
-                      `Pay $${total.toLocaleString()} Now`
+                      `Pay $${total.toFixed(2)} Now`
                     )}
                   </Button>
                 </div>
@@ -637,7 +676,10 @@ within 10 calendar days.
                     <ShieldCheck className="text-accent" size={18} /> Pay by Check Instructions
                   </p>
                   <p>Selecting check payment will reserve your selected raffle box numbers immediately while your check is processed.</p>
-                  <p className="font-semibold text-accent">Total Check Amount: ${baseAmount.toLocaleString()}</p>
+                  <div className="pt-2 border-t border-white/10 flex justify-between font-bold text-white text-sm">
+                    <span>Total Check Amount</span>
+                    <span className="text-accent">${baseAmount.toFixed(2)}</span>
+                  </div>
                 </div>
 
                 <div className="flex gap-3 pt-2">

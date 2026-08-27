@@ -16,7 +16,7 @@ import philByerPortrait from "@/assets/phil-byer.jpg";
 
 // ── Feature Flags ────────────────────────────────────────────────────────────
 // To re-enable Phil Byer honoree section, flip to `true` — no other changes needed.
-const HONOREE_ENABLED = false;
+const HONOREE_ENABLED = true;
 
 // ── Static sponsorship definitions (merged with live Firestore data) ───────────
 // maxLimit: -1 = unlimited

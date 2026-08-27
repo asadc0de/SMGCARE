@@ -1480,7 +1480,9 @@ const Admin = () => {
                           <DollarSign size={18} />
                         </div>
                       </div>
-                      <div className="text-2xl font-black font-display text-foreground">${totalRevenue.toLocaleString()}</div>
+                      <div className="text-2xl font-black font-display text-foreground">
+                        ${totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
                       <p className="text-xs text-muted-foreground">From confirmed card & check sales</p>
                     </div>
 
@@ -1492,8 +1494,8 @@ const Admin = () => {
                           <Ticket size={18} />
                         </div>
                       </div>
-                      <div className="text-2xl font-black font-display text-foreground">{totalBoxesSold} <span className="text-sm font-normal text-muted-foreground">/ 100</span></div>
-                      <p className="text-xs text-muted-foreground">{100 - totalBoxesSold} box numbers available</p>
+                      <div className="text-2xl font-black font-display text-foreground">{totalBoxesSold} <span className="text-sm font-normal text-muted-foreground">/ 144</span></div>
+                      <p className="text-xs text-muted-foreground">{144 - totalBoxesSold} box numbers available</p>
                     </div>
 
                     {/* Card Payments Breakdown */}
@@ -1504,7 +1506,9 @@ const Admin = () => {
                           <CreditCard size={18} />
                         </div>
                       </div>
-                      <div className="text-2xl font-black font-display text-foreground">${cardRevenue.toLocaleString()}</div>
+                      <div className="text-2xl font-black font-display text-foreground">
+                        ${cardRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
                       <p className="text-xs text-muted-foreground">{cardOrders.length} order(s) · {cardBoxes} box(es)</p>
                     </div>
 
@@ -1516,9 +1520,11 @@ const Admin = () => {
                           <Clock size={18} />
                         </div>
                       </div>
-                      <div className="text-2xl font-black font-display text-foreground">${checkApprovedRev.toLocaleString()}</div>
+                      <div className="text-2xl font-black font-display text-foreground">
+                        ${checkApprovedRev.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
                       <p className="text-xs text-amber-700 font-medium">
-                        Pending: {checkPending.length} order(s) (${checkPendingRev.toLocaleString()})
+                        Pending: {checkPending.length} order(s) (${checkPendingRev.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
                       </p>
                     </div>
                   </div>
@@ -1668,7 +1674,9 @@ const Admin = () => {
 
                             <div className="text-sm text-muted-foreground space-y-1">
                               <div>
-                                <span className="font-bold text-accent">${item.amount.toLocaleString()}</span>
+                                <span className="font-bold text-accent">
+                                  ${item.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
                                 <span className="mx-2">·</span>
                                 <span>{new Date(item.timestamp).toLocaleString()}</span>
                               </div>

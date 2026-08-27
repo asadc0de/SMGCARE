@@ -17,15 +17,15 @@ import raffleNecklace from "@/assets/image.png";
 
 // ── CONFIGURABLE CONSTANTS ───────────────────────────────────────────────────
 // Board Size & Pricing Configuration
-const BOARD_SIZE = 100; // Number of available box numbers (1 through 100)
-const TICKET_PRICE = 225; // Fixed price per box number in USD ($225)
+const BOARD_SIZE = 144; // Number of available box numbers (1 through 144 - 12x12 grid)
+const TICKET_PRICE = 200; // Fixed base price per box number in USD ($200 + 2.75% processing fee)
 
 // Sponsor Block Configuration
 const RAFFLE_SPONSOR = {
-  name: "Schulman Insurance",
-  tagline: "Trusted Benefits & Insurance Partner to SMG",
-  address: "500 Broadhollow Road, Melville, NY 11747",
-  websiteUrl: "https://schulmaninsurance.com",
+  name: "Elegant Jewelers of Woodbury",
+  tagline: "", // client didn't provide a tagline
+  address: "", // client didn't provide an address
+  websiteUrl: "https://elegantjewelersny.com",
   buttonText: "Visit Their Website",
 };
 
@@ -348,7 +348,7 @@ const Raffle = () => {
               Buy a Board <span className="italic text-[#72a8ff]">Box Number.</span>
             </h2>
             <p className="mt-4 text-muted-foreground text-base md:text-lg">
-              Select one or more available numbers below. Fixed price: <strong className="text-primary font-bold">${TICKET_PRICE} per box number</strong>.
+              Select one or more available numbers below. Base price: <strong className="text-primary font-bold">${TICKET_PRICE} per box number</strong> (+ 2.75% processing fee on card checkout).
             </p>
           </div>
 
@@ -400,15 +400,15 @@ const Raffle = () => {
             </div>
           </div>
 
-          {/* Board Grid Container */}
-          <div className="relative bg-white/60 backdrop-blur-md p-4 sm:p-8 rounded-[2rem] border border-black/10 shadow-soft">
+          {/* Board Grid Container — 12x12 (144 Boxes) */}
+          <div className="relative bg-white/60 backdrop-blur-md p-3 sm:p-6 md:p-8 rounded-[2rem] border border-black/10 shadow-soft">
             {isLoadingBoard ? (
               <div className="py-20 flex flex-col items-center justify-center text-slate-500 gap-3">
                 <RefreshCw className="w-8 h-8 animate-spin text-accent" />
                 <p className="text-sm font-medium">Loading live raffle board...</p>
               </div>
             ) : (
-              <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2.5 sm:gap-3">
+              <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-12 gap-1.5 sm:gap-2 md:gap-2.5">
                 {Array.from({ length: BOARD_SIZE }, (_, i) => i + 1).map((num) => {
                   const isSold = soldNumbers.includes(num);
                   const isSelected = selectedNumbers.includes(num);
@@ -419,7 +419,7 @@ const Raffle = () => {
                       type="button"
                       disabled={isSold}
                       onClick={() => toggleNumberSelection(num)}
-                      className={`relative aspect-square rounded-xl sm:rounded-2xl font-black text-sm sm:text-base md:text-lg flex flex-col items-center justify-center transition-all duration-200 select-none ${
+                      className={`relative aspect-square rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm md:text-base flex flex-col items-center justify-center transition-all duration-200 select-none ${
                         isSold
                           ? "bg-slate-900 text-slate-500 border border-slate-800 cursor-not-allowed opacity-60"
                           : isSelected
@@ -429,11 +429,11 @@ const Raffle = () => {
                     >
                       <span>#{num}</span>
                       {isSold ? (
-                        <span className="text-[8px] uppercase tracking-tighter text-slate-400 leading-none font-bold mt-0.5">SOLD</span>
+                        <span className="text-[7px] sm:text-[8px] uppercase tracking-tighter text-slate-400 leading-none font-bold mt-0.5">SOLD</span>
                       ) : isSelected ? (
                         <CheckCircle2 size={12} className="text-white mt-0.5" />
                       ) : (
-                        <span className="text-[8px] tracking-tight text-emerald-700 leading-none font-semibold mt-0.5">${TICKET_PRICE}</span>
+                        <span className="text-[7px] sm:text-[8px] tracking-tight text-emerald-700 leading-none font-semibold mt-0.5">${TICKET_PRICE}</span>
                       )}
                     </button>
                   );
@@ -465,9 +465,14 @@ const Raffle = () => {
                 <p className="text-xs text-white/80 mt-1 max-w-xs truncate">
                   Numbers: #{selectedNumbers.slice().sort((a, b) => a - b).join(", #")}
                 </p>
-                <p className="text-lg font-bold text-white mt-0.5">
-                  Total: <span className="text-accent">${(selectedNumbers.length * TICKET_PRICE).toLocaleString()}</span>
-                </p>
+                <div className="mt-1 flex items-baseline gap-2">
+                  <span className="text-lg font-bold text-white">
+                    Total: <span className="text-accent">${(selectedNumbers.length * TICKET_PRICE).toLocaleString()}</span>
+                  </span>
+                  <span className="text-[11px] text-white/60 font-medium">
+                    (+ 2.75% fee on card)
+                  </span>
+                </div>
               </div>
 
               <Button
@@ -491,26 +496,32 @@ const Raffle = () => {
           </div>
           
           <h3 className="font-display text-2xl sm:text-3xl font-bold text-primary mb-2">
-            Sponsored By <span className="italic text-[#72a8ff]">{RAFFLE_SPONSOR.name}</span>
+            Sponsored By <br></br> <span className="italic text-[#72a8ff]">{RAFFLE_SPONSOR.name}</span>
           </h3>
           
-          <p className="text-sm sm:text-base text-muted-foreground font-medium mb-2">
-            {RAFFLE_SPONSOR.tagline}
-          </p>
+          {RAFFLE_SPONSOR.tagline ? (
+            <p className="text-sm sm:text-base text-muted-foreground font-medium mb-2">
+              {RAFFLE_SPONSOR.tagline}
+            </p>
+          ) : null}
           
-          <p className="text-xs text-slate-500 mb-6">
-            {RAFFLE_SPONSOR.address}
-          </p>
+          {RAFFLE_SPONSOR.address ? (
+            <p className="text-xs text-slate-500 mb-6">
+              {RAFFLE_SPONSOR.address}
+            </p>
+          ) : null}
 
-          <Button
-            asChild
-            variant="outline"
-            className="rounded-full border-primary/20 hover:bg-primary/5 text-primary font-bold px-8 h-12 text-sm"
-          >
-            <a href={RAFFLE_SPONSOR.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
-              {RAFFLE_SPONSOR.buttonText} <ExternalLink size={14} />
-            </a>
-          </Button>
+          <div className={RAFFLE_SPONSOR.tagline || RAFFLE_SPONSOR.address ? "mt-4" : "mt-6"}>
+            <Button
+              asChild
+              variant="outline"
+              className="rounded-full border-primary/20 hover:scale-105 transition-all text-primary font-bold px-8 h-12 text-sm"
+            >
+              <a href={RAFFLE_SPONSOR.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                {RAFFLE_SPONSOR.buttonText} <ExternalLink size={14} />
+              </a>
+            </Button>
+          </div>
         </div>
       </section>
 
