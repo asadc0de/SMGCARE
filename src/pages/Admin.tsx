@@ -6,7 +6,7 @@ import {
   Ticket, CreditCard, DollarSign, Search, RefreshCw, RotateCcw, Download
 } from "lucide-react";
 import * as XLSX from "xlsx";
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, orderBy, setDoc, increment, where, arrayRemove } from "firebase/firestore";
+import { collection, addDoc, getDocs, getDoc, updateDoc, deleteDoc, doc, query, orderBy, setDoc, increment, where, arrayRemove, arrayUnion } from "firebase/firestore";
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "firebase/auth";
 import { db, auth, firebaseIsConfigured } from "@/lib/firebase";
 import { PageShell } from "@/components/PageShell";
@@ -56,7 +56,7 @@ interface RaffleItem {
   buyerName: string;
   buyerEmail: string;
   buyerPhone?: string;
-  paymentMethod: "card" | "check";
+  paymentMethod: "card" | "check" | "manual";
   amount: number;
   status: "approved" | "pending" | "rejected" | "expired";
   timestamp: string;
@@ -114,6 +114,14 @@ const Admin = () => {
   const [raffleFilter, setRaffleFilter] = useState<"all" | "pending" | "approved" | "rejected" | "expired">("all");
   const [raffleSearch, setRaffleSearch] = useState("");
   const [raffleResetting, setRaffleResetting] = useState(false);
+  const [isMarkSoldOpen, setIsMarkSoldOpen] = useState(false);
+  const [manualBoxNumbers, setManualBoxNumbers] = useState("");
+  const [manualBuyerName, setManualBuyerName] = useState("");
+  const [manualBuyerEmail, setManualBuyerEmail] = useState("");
+  const [manualBuyerPhone, setManualBuyerPhone] = useState("");
+  const [manualAmount, setManualAmount] = useState("");
+  const [manualNote, setManualNote] = useState("");
+  const [submittingManualRaffle, setSubmittingManualRaffle] = useState(false);
 
   const [newSponsorship, setNewSponsorship] = useState({
     tierName: "",
@@ -175,7 +183,7 @@ const Admin = () => {
           buyerName: d.buyerName || d.name || "Anonymous",
           buyerEmail: d.buyerEmail || d.email || "N/A",
           buyerPhone: d.buyerPhone || d.phone || "",
-          paymentMethod: "card",
+          paymentMethod: (d.paymentMethod === "manual" ? "manual" : "card") as "card" | "manual",
           amount: d.amount || 0,
           status: "approved",
           timestamp: d.createdAt || d.timestamp || new Date().toISOString(),
@@ -268,6 +276,118 @@ const Admin = () => {
       toast.error("Reset failed: " + (e.message || "unknown error"));
     } finally {
       setRaffleResetting(false);
+    }
+  };
+
+  const handleMarkSoldSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (submittingManualRaffle) return;
+
+    if (!manualBoxNumbers.trim()) {
+      toast.error("Please enter box number(s).");
+      return;
+    }
+
+    const rawParts = manualBoxNumbers.split(",").map(s => s.trim()).filter(Boolean);
+    const parsedNumbers: number[] = [];
+    for (const part of rawParts) {
+      const num = parseInt(part, 10);
+      if (isNaN(num) || num < 1 || num > 144) {
+        toast.error(`Invalid box number: "${part}". Box numbers must be between 1 and 144.`);
+        return;
+      }
+      parsedNumbers.push(num);
+    }
+
+    if (parsedNumbers.length === 0) {
+      toast.error("Please enter at least one valid box number (1-144).");
+      return;
+    }
+
+    const uniqueNumbers = Array.from(new Set(parsedNumbers));
+
+    if (!manualBuyerName.trim()) {
+      toast.error("Buyer name is required.");
+      return;
+    }
+
+    const amountVal = parseFloat(manualAmount);
+    if (isNaN(amountVal) || amountVal < 0) {
+      toast.error("Please enter a valid amount.");
+      return;
+    }
+
+    setSubmittingManualRaffle(true);
+    try {
+      // 1. Live check whether box numbers already exist in raffle_tickets/board
+      const boardRef = doc(db, "raffle_tickets", "board");
+      const boardSnap = await getDoc(boardRef);
+      let existingSold: number[] = [];
+      if (boardSnap.exists()) {
+        existingSold = boardSnap.data().soldNumbers || [];
+      }
+
+      const conflicts = uniqueNumbers.filter(n => existingSold.includes(n));
+      if (conflicts.length > 0) {
+        toast.error(`Box number(s) ${conflicts.map(n => `#${n}`).join(", ")} already sold! Please choose different numbers.`);
+        setSubmittingManualRaffle(false);
+        return;
+      }
+
+      // 2. Update raffle_tickets/board with arrayUnion
+      await setDoc(
+        boardRef,
+        {
+          soldNumbers: arrayUnion(...uniqueNumbers),
+          updatedAt: new Date().toISOString(),
+        },
+        { merge: true }
+      );
+
+      // 3. Create record in raffle_orders
+      await addDoc(collection(db, "raffle_orders"), {
+        numbers: uniqueNumbers,
+        buyerName: manualBuyerName.trim(),
+        buyerEmail: manualBuyerEmail.trim() || "",
+        buyerPhone: manualBuyerPhone.trim() || "",
+        amount: amountVal,
+        paymentMethod: "manual",
+        paymentRef: manualNote.trim() || "Manual entry (offline payment)",
+        createdAt: new Date().toISOString(),
+      });
+
+      // 4. Create record in purchases collection
+      await addDoc(collection(db, "purchases"), {
+        timestamp: new Date().toISOString(),
+        buyerName: manualBuyerName.trim(),
+        buyerEmail: manualBuyerEmail.trim() || "",
+        packageName: `2026 Raffle - Box #${uniqueNumbers.slice().sort((a, b) => a - b).join(", #")}`,
+        amount: amountVal,
+        paymentStatus: "success",
+        failureReason: null,
+        squarePaymentId: null,
+        source: "Manual / Offline Payment",
+      });
+
+      toast.success(`Box ${uniqueNumbers.map(n => `#${n}`).join(", ")} marked as sold!`);
+
+      // Reset form and close dialog
+      setManualBoxNumbers("");
+      setManualBuyerName("");
+      setManualBuyerEmail("");
+      setManualBuyerPhone("");
+      setManualAmount("");
+      setManualNote("");
+      setIsMarkSoldOpen(false);
+
+      // Refresh data
+      fetchRaffleItems();
+      fetchPurchases();
+    } catch (err: any) {
+      console.error("Error marking box as sold:", err);
+      toast.error("Failed to mark as sold: " + (err.message || "Unknown error"));
+    } finally {
+      setSubmittingManualRaffle(false);
     }
   };
 
@@ -1575,6 +1695,14 @@ const Admin = () => {
                   </Button>
 
                   <Button
+                    onClick={() => setIsMarkSoldOpen(true)}
+                    className="rounded-xl h-10 px-4 text-sm font-bold flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white shadow-sm"
+                  >
+                    <CheckCircle size={14} />
+                    Mark as Sold
+                  </Button>
+
+                  <Button
                     onClick={handleRaffleReset}
                     disabled={raffleResetting}
                     variant="outline"
@@ -1658,9 +1786,11 @@ const Admin = () => {
                               <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
                                 item.paymentMethod === "card"
                                   ? "bg-indigo-100 text-indigo-700"
+                                  : item.paymentMethod === "manual"
+                                  ? "bg-emerald-100 text-emerald-700"
                                   : "bg-amber-100 text-amber-700"
                               }`}>
-                                {item.paymentMethod === "card" ? "Credit Card" : "Check"}
+                                {item.paymentMethod === "card" ? "Credit Card" : item.paymentMethod === "manual" ? "Manual / Offline" : "Check"}
                               </span>
                               <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
                                 item.status === "approved" ? "bg-emerald-100 text-emerald-800" :
@@ -1717,6 +1847,141 @@ const Admin = () => {
                   })()}
                 </div>
               )}
+
+              {/* Mark as Sold Dialog */}
+              <Dialog open={isMarkSoldOpen} onOpenChange={setIsMarkSoldOpen}>
+                <DialogContent className="sm:max-w-[520px] bg-white rounded-3xl p-6 shadow-2xl">
+                  <DialogHeader>
+                    <DialogTitle className="font-display text-2xl text-foreground flex items-center gap-2">
+                      <CheckCircle size={22} className="text-green-600" />
+                      Mark Box(es) as Sold
+                    </DialogTitle>
+                    <DialogDescription className="text-muted-foreground text-sm">
+                      Manually record an offline sale (cash, check, or direct payment). This immediately reserves the numbers on the live raffle board.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <form onSubmit={handleMarkSoldSubmit} className="space-y-4 mt-4">
+                    <div className="space-y-2">
+                      <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">
+                        Box Number(s) * (1-144)
+                      </label>
+                      <Input
+                        value={manualBoxNumbers}
+                        onChange={(e) => setManualBoxNumbers(e.target.value)}
+                        placeholder="e.g. 12, 45, 88"
+                        className="bg-surface border-border rounded-xl focus:border-green-600 focus:ring-1 focus:ring-green-600 text-foreground"
+                        required
+                        disabled={submittingManualRaffle}
+                      />
+                      <p className="text-[11px] text-muted-foreground">Separate multiple box numbers with commas (1 to 144).</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">
+                        Buyer Name *
+                      </label>
+                      <Input
+                        value={manualBuyerName}
+                        onChange={(e) => setManualBuyerName(e.target.value)}
+                        placeholder="John Doe"
+                        className="bg-surface border-border rounded-xl focus:border-green-600 focus:ring-1 focus:ring-green-600 text-foreground"
+                        required
+                        disabled={submittingManualRaffle}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">
+                          Buyer Email (Optional)
+                        </label>
+                        <Input
+                          type="email"
+                          value={manualBuyerEmail}
+                          onChange={(e) => setManualBuyerEmail(e.target.value)}
+                          placeholder="john@example.com"
+                          className="bg-surface border-border rounded-xl focus:border-green-600 focus:ring-1 focus:ring-green-600 text-foreground"
+                          disabled={submittingManualRaffle}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">
+                          Buyer Phone (Optional)
+                        </label>
+                        <Input
+                          type="tel"
+                          value={manualBuyerPhone}
+                          onChange={(e) => setManualBuyerPhone(e.target.value)}
+                          placeholder="(555) 000-0000"
+                          className="bg-surface border-border rounded-xl focus:border-green-600 focus:ring-1 focus:ring-green-600 text-foreground"
+                          disabled={submittingManualRaffle}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">
+                        Amount ($) *
+                      </label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={manualAmount}
+                        onChange={(e) => setManualAmount(e.target.value)}
+                        placeholder="100.00"
+                        className="bg-surface border-border rounded-xl focus:border-green-600 focus:ring-1 focus:ring-green-600 text-foreground"
+                        required
+                        disabled={submittingManualRaffle}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">
+                        Note (Optional)
+                      </label>
+                      <Textarea
+                        value={manualNote}
+                        onChange={(e) => setManualNote(e.target.value)}
+                        placeholder="e.g. cash at golf outing, check #1234"
+                        className="bg-surface border-border rounded-xl min-h-[80px] focus:border-green-600 focus:ring-1 focus:ring-green-600 text-foreground"
+                        disabled={submittingManualRaffle}
+                      />
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-4 border-t border-border">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setIsMarkSoldOpen(false)}
+                        disabled={submittingManualRaffle}
+                        className="rounded-full px-5"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={submittingManualRaffle}
+                        className="rounded-full px-6 bg-green-600 hover:bg-green-700 text-white font-bold"
+                      >
+                        {submittingManualRaffle ? (
+                          <>
+                            <Loader2 size={16} className="animate-spin mr-2" />
+                            Recording...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle size={16} className="mr-2" />
+                            Confirm Sale
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
             </div>
           )}
         </div>
