@@ -10,7 +10,25 @@ import { collection, query, orderBy, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useState, useEffect } from "react";
 
-const initialEvents: any[] = [];
+const initialEvents: any[] = [
+  {
+    id: "static-2026",
+    year: "2026",
+    title: "Annual Charity Golf Outing",
+    body: "Join us on Monday, September 28th, 2026 at The Muttontown Club for our annual charity golf outing — a day of community, competition, and impact.",
+    image: event2026,
+    tag: "Upcoming",
+  },
+  {
+    id: "static-2025",
+    year: "2025",
+    title: "Annual Charity Golf Outing",
+    raised: "$171,215.25",
+    body: "SMG Cares proudly hosted its 2025 Charity Golf Outing at The Muttontown Club raising $171,215.25 for Fight CRC.",
+    image: event2025,
+    tag: "Past Event",
+  },
+];
 
 const Events = () => {
   const [events, setEvents] = useState(initialEvents);
@@ -147,6 +165,23 @@ const Events = () => {
                 )}
                 
                 <p className="mt-6 text-muted-foreground leading-relaxed text-base md:text-lg line-clamp-3">{e.body}</p>
+                
+                {isUpcoming && (
+                  <div className="mt-6 p-4 rounded-2xl bg-surface border border-border/80 space-y-2 text-xs text-primary/80">
+                    <div className="flex items-center gap-2 font-medium">
+                      <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />
+                      <span><strong className="font-bold text-primary">10:00 AM</strong> — Participant Registration &amp; Welcome Breakfast</span>
+                    </div>
+                    <div className="flex items-center gap-2 font-medium">
+                      <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />
+                      <span><strong className="font-bold text-primary">12:00 PM</strong> — Shotgun Start</span>
+                    </div>
+                    <div className="flex items-center gap-2 font-medium">
+                      <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />
+                      <span><strong className="font-bold text-primary">5:30 PM</strong> — Extended Cocktail Reception, Dinner &amp; Raffle Drawing</span>
+                    </div>
+                  </div>
+                )}
                 
                 <div className="mt-8">
                   {isUpcoming ? (

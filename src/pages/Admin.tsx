@@ -3,10 +3,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Plus, Pencil, Trash2, Image as ImageIcon, Save, X, Loader2, Trophy, 
   Infinity as InfinityIcon, CheckCircle, XCircle, Clock, AlertCircle, LogOut, Lock, Eye, EyeOff,
-  Ticket, CreditCard, DollarSign, Search, RefreshCw, RotateCcw, Download
+  Ticket, CreditCard, DollarSign, Search, RefreshCw, RotateCcw, Download,
+  AlertTriangle, ChevronDown, CheckSquare, Square, Box
 } from "lucide-react";
 import * as XLSX from "xlsx";
-import { collection, addDoc, getDocs, getDoc, updateDoc, deleteDoc, doc, query, orderBy, setDoc, increment, where, arrayRemove, arrayUnion } from "firebase/firestore";
+import { collection, addDoc, getDocs, getDoc, updateDoc, deleteDoc, doc, query, orderBy, setDoc, increment, where, arrayRemove, arrayUnion, writeBatch, onSnapshot } from "firebase/firestore";
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "firebase/auth";
 import { db, auth, firebaseIsConfigured } from "@/lib/firebase";
 import { PageShell } from "@/components/PageShell";
@@ -114,6 +115,12 @@ const Admin = () => {
   const [raffleFilter, setRaffleFilter] = useState<"all" | "pending" | "approved" | "rejected" | "expired">("all");
   const [raffleSearch, setRaffleSearch] = useState("");
   const [raffleResetting, setRaffleResetting] = useState(false);
+  const [resetConfirmInput, setResetConfirmInput] = useState("");
+  const [isDangerZoneOpen, setIsDangerZoneOpen] = useState(false);
+  const [boardSoldNumbers, setBoardSoldNumbers] = useState<number[]>([]);
+  const [selectedReopenBoxes, setSelectedReopenBoxes] = useState<number[]>([]);
+  const [reopeningBoxes, setReopeningBoxes] = useState(false);
+  const [raffleSubTab, setRaffleSubTab] = useState<"orders" | "boxes">("orders");
   const [isMarkSoldOpen, setIsMarkSoldOpen] = useState(false);
   const [manualBoxNumbers, setManualBoxNumbers] = useState("");
   const [manualBuyerName, setManualBuyerName] = useState("");
@@ -154,7 +161,7 @@ const Admin = () => {
       return;
     }
 
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
         fetchEvents();
@@ -167,12 +174,37 @@ const Admin = () => {
       }
       setAuthLoading(false);
     });
-    return () => unsubscribe();
+
+    // Real-time listener for live raffle board sold numbers
+    const unsubscribeBoard = onSnapshot(
+      doc(db, "raffle_tickets", "board"),
+      (docSnap) => {
+        if (docSnap.exists()) {
+          const d = docSnap.data();
+          setBoardSoldNumbers(d.soldNumbers || []);
+        }
+      },
+      (err) => {
+        console.warn("Admin raffle board listener warning:", err);
+      }
+    );
+
+    return () => {
+      unsubscribeAuth();
+      unsubscribeBoard();
+    };
   }, []);
 
   const fetchRaffleItems = async () => {
     setRaffleLoading(true);
     try {
+      // 0. Fetch live board sold numbers
+      const boardSnap = await getDoc(doc(db, "raffle_tickets", "board"));
+      if (boardSnap.exists()) {
+        const bData = boardSnap.data();
+        setBoardSoldNumbers(bData.soldNumbers || []);
+      }
+
       // 1. Card orders from raffle_orders
       const ordersSnap = await getDocs(query(collection(db, "raffle_orders"), orderBy("createdAt", "desc")));
       const cardItems: RaffleItem[] = ordersSnap.docs.map((docSnap) => {
@@ -226,30 +258,61 @@ const Admin = () => {
     }
   };
 
-  const handleRaffleReset = async () => {
-    if (!window.confirm(
-      "⚠️ FULL RAFFLE RESET ⚠️\n\n" +
-      "This will permanently:\n" +
-      "• Clear ALL sold/reserved box numbers from the live board\n" +
-      "• Delete ALL raffle card payment orders (raffle_orders)\n" +
-      "• Mark ALL raffle check reservations as Rejected (checkReservations)\n\n" +
-      "This CANNOT be undone. Type OK in the next prompt to confirm."
-    )) return;
-
-    const confirm2 = window.prompt("Type RESET to confirm. All raffle data will be cleared:");
-    if (confirm2?.trim().toUpperCase() !== "RESET") {
-      toast.error("Reset cancelled — confirmation text did not match.");
+  const handleReopenBoxes = async (boxNumbers: number[]) => {
+    if (boxNumbers.length === 0) {
+      toast.error("No boxes selected to re-open.");
       return;
     }
 
+    const countText = boxNumbers.length === 1
+      ? `Box #${boxNumbers[0]}`
+      : `${boxNumbers.length} boxes (#${boxNumbers.slice().sort((a, b) => a - b).join(", #")})`;
+
+    const confirmed = window.confirm(
+      `Confirm Re-open:\n\n` +
+      `Are you sure you want to re-open ${countText}?\n\n` +
+      `• The box(es) will immediately become AVAILABLE on the public live raffle board.\n` +
+      `• Payment and order records will NOT be modified or deleted.\n` +
+      `• An audit entry will be recorded on the raffle board.`
+    );
+    if (!confirmed) return;
+
+    setReopeningBoxes(true);
+    try {
+      const boardRef = doc(db, "raffle_tickets", "board");
+      const batch = writeBatch(db);
+
+      batch.update(boardRef, {
+        soldNumbers: arrayRemove(...boxNumbers),
+        lastReopenedAt: new Date().toISOString(),
+        lastReopenedBy: user?.email || "admin",
+        updatedAt: new Date().toISOString(),
+      });
+
+      await batch.commit();
+
+      setSelectedReopenBoxes(prev => prev.filter(num => !boxNumbers.includes(num)));
+      toast.success(`Successfully re-opened ${countText}! Public board updated live.`);
+      await fetchRaffleItems();
+    } catch (e: any) {
+      console.error("Error re-opening box(es):", e);
+      toast.error("Failed to re-open box(es): " + (e.message || "Unknown error"));
+    } finally {
+      setReopeningBoxes(false);
+    }
+  };
+
+  const executeRaffleReset = async () => {
     setRaffleResetting(true);
     try {
       let deleted = 0;
       let rejected = 0;
 
-      // 1. Clear soldNumbers on raffle_tickets/board
+      // 1. Clear soldNumbers on raffle_tickets/board and log audit
       await setDoc(doc(db, "raffle_tickets", "board"), {
         soldNumbers: [],
+        lastResetAt: new Date().toISOString(),
+        lastResetBy: user?.email || "admin",
         updatedAt: new Date().toISOString(),
       }, { merge: false });
 
@@ -270,6 +333,7 @@ const Admin = () => {
       }
 
       toast.success(`Raffle reset complete — board cleared, ${deleted} order(s) deleted, ${rejected} reservation(s) rejected.`);
+      setResetConfirmInput("");
       await fetchRaffleItems();
     } catch (e: any) {
       console.error("Raffle reset error:", e);
@@ -277,6 +341,26 @@ const Admin = () => {
     } finally {
       setRaffleResetting(false);
     }
+  };
+
+  const handleDangerZoneReset = async () => {
+    if (resetConfirmInput.trim() !== "RESET") {
+      toast.error('Type "RESET" in all uppercase before clicking reset.');
+      return;
+    }
+
+    const finalConfirm = window.confirm(
+      "⚠️ FINAL CONFIRMATION: FULL RAFFLE RESET ⚠️\n\n" +
+      "Are you absolutely certain you want to permanently reset all raffle data?\n\n" +
+      "This will:\n" +
+      "• Clear ALL sold/reserved box numbers from the live board (all 144 boxes will reopen)\n" +
+      "• Delete ALL raffle card orders\n" +
+      "• Mark ALL raffle check reservations as rejected\n\n" +
+      "This CANNOT be undone. Proceed?"
+    );
+    if (!finalConfirm) return;
+
+    await executeRaffleReset();
   };
 
   const handleMarkSoldSubmit = async (e: React.FormEvent) => {
@@ -1651,12 +1735,89 @@ const Admin = () => {
                 );
               })()}
 
-              {/* Search & Filter Header Bar */}
+              {/* Raffle Sub-tabs: Orders vs. Opened Boxes */}
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setRaffleSubTab("orders")}
+                    className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 ${
+                      raffleSubTab === "orders"
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "bg-surface text-muted-foreground hover:text-foreground border border-border"
+                    }`}
+                  >
+                    <Ticket size={14} />
+                    Orders &amp; Reservations ({raffleItems.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRaffleSubTab("boxes")}
+                    className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 ${
+                      raffleSubTab === "boxes"
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "bg-surface text-muted-foreground hover:text-foreground border border-border"
+                    }`}
+                  >
+                    <Box size={14} />
+                    Opened Boxes ({boardSoldNumbers.length} / 144)
+                  </button>
+                </div>
+
+                {raffleSubTab === "boxes" && boardSoldNumbers.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        if (selectedReopenBoxes.length === boardSoldNumbers.length) {
+                          setSelectedReopenBoxes([]);
+                        } else {
+                          setSelectedReopenBoxes([...boardSoldNumbers]);
+                        }
+                      }}
+                      className="rounded-xl h-9 text-xs font-bold"
+                    >
+                      {selectedReopenBoxes.length === boardSoldNumbers.length ? (
+                        <>
+                          <CheckSquare size={14} className="mr-1 text-primary" />
+                          Deselect All
+                        </>
+                      ) : (
+                        <>
+                          <Square size={14} className="mr-1" />
+                          Select All ({boardSoldNumbers.length})
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      type="button"
+                      disabled={selectedReopenBoxes.length === 0 || reopeningBoxes}
+                      onClick={() => handleReopenBoxes(selectedReopenBoxes)}
+                      className="bg-amber-600 hover:bg-amber-700 text-white rounded-xl h-9 px-4 text-xs font-black uppercase tracking-wider shadow-sm flex items-center gap-1.5 disabled:opacity-40"
+                    >
+                      {reopeningBoxes ? (
+                        <Loader2 size={14} className="animate-spin" />
+                      ) : (
+                        <RotateCcw size={14} />
+                      )}
+                      Re-open Selected ({selectedReopenBoxes.length})
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              {/* Search & Action Bar */}
               <div className="bg-white border border-border rounded-3xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-display text-foreground">Raffle Number Reservations</h3>
+                  <h3 className="text-lg font-display text-foreground">
+                    {raffleSubTab === "orders" ? "Raffle Number Reservations" : "Opened Raffle Boxes Manager"}
+                  </h3>
                   <p className="text-sm text-muted-foreground">
-                    Search by box number or buyer details. Review credit card purchases and manage pending check reservations.
+                    {raffleSubTab === "orders"
+                      ? "Search by box number or buyer details. Review credit card purchases and manage pending check reservations."
+                      : "Manage all taken / sold boxes on the live board. Select individual boxes or batch select to re-open."}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2.5 items-center">
@@ -1677,18 +1838,19 @@ const Admin = () => {
                     )}
                   </div>
 
-                  {/* Filter select */}
-                  <select
-                    value={raffleFilter}
-                    onChange={(e) => setRaffleFilter(e.target.value as any)}
-                    className="bg-surface border-border rounded-xl px-3 py-2 text-sm focus:border-accent focus:ring-1 focus:ring-accent outline-none font-medium text-foreground h-10"
-                  >
-                    <option value="all">All Records</option>
-                    <option value="pending">Pending Check</option>
-                    <option value="approved">Paid / Approved</option>
-                    <option value="rejected">Rejected</option>
-                    <option value="expired">Expired</option>
-                  </select>
+                  {raffleSubTab === "orders" && (
+                    <select
+                      value={raffleFilter}
+                      onChange={(e) => setRaffleFilter(e.target.value as any)}
+                      className="bg-surface border-border rounded-xl px-3 py-2 text-sm focus:border-accent focus:ring-1 focus:ring-accent outline-none font-medium text-foreground h-10"
+                    >
+                      <option value="all">All Records</option>
+                      <option value="pending">Pending Check</option>
+                      <option value="approved">Paid / Approved</option>
+                      <option value="rejected">Rejected</option>
+                      <option value="expired">Expired</option>
+                    </select>
+                  )}
 
                   <Button onClick={fetchRaffleItems} variant="outline" className="rounded-xl h-10 px-4 text-sm font-bold flex items-center gap-1.5">
                     <RefreshCw size={14} className={raffleLoading ? "animate-spin" : ""} /> Refresh
@@ -1701,150 +1863,348 @@ const Admin = () => {
                     <CheckCircle size={14} />
                     Mark as Sold
                   </Button>
-
-                  <Button
-                    onClick={handleRaffleReset}
-                    disabled={raffleResetting}
-                    variant="outline"
-                    className="rounded-xl h-10 px-4 text-sm font-bold flex items-center gap-1.5 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-400"
-                  >
-                    {raffleResetting
-                      ? <Loader2 size={14} className="animate-spin" />
-                      : <RotateCcw size={14} />
-                    }
-                    Reset Raffle
-                  </Button>
                 </div>
               </div>
 
-              {/* Records List / Table */}
-              {raffleLoading ? (
-                <div className="flex justify-center py-20"><Loader2 className="animate-spin text-accent" size={40} /></div>
-              ) : (
+              {/* Sub-tab 1: Opened Boxes Manager */}
+              {raffleSubTab === "boxes" && (
                 <div className="space-y-4">
                   {(() => {
-                    const filtered = raffleItems.filter((item) => {
-                      if (raffleFilter !== "all" && item.status !== raffleFilter) return false;
+                    const sortedBoxes = [...boardSoldNumbers].sort((a, b) => a - b);
+                    const filteredBoxes = sortedBoxes.filter((num) => {
                       if (!raffleSearch.trim()) return true;
-
                       const q = raffleSearch.toLowerCase().trim();
                       const cleanBox = q.replace(/^#/, "");
-                      const matchesBox = item.numbers.some((num) => num.toString() === cleanBox);
-                      const matchesName = item.buyerName.toLowerCase().includes(q);
-                      const matchesEmail = item.buyerEmail.toLowerCase().includes(q);
-                      const matchesPhone = item.buyerPhone?.toLowerCase().includes(q);
-
-                      return matchesBox || matchesName || matchesEmail || matchesPhone;
+                      if (num.toString() === cleanBox) return true;
+                      const matchingItem = raffleItems.find((it) => it.numbers.includes(num));
+                      if (matchingItem) {
+                        return (
+                          matchingItem.buyerName.toLowerCase().includes(q) ||
+                          matchingItem.buyerEmail.toLowerCase().includes(q) ||
+                          (matchingItem.buyerPhone && matchingItem.buyerPhone.toLowerCase().includes(q))
+                        );
+                      }
+                      return false;
                     });
 
-                    if (filtered.length === 0) {
+                    if (filteredBoxes.length === 0) {
                       return (
                         <div className="text-center py-20 border border-dashed border-border bg-white rounded-3xl">
-                          <Ticket className="mx-auto mb-3 text-muted-foreground/40" size={40} />
+                          <Box className="mx-auto mb-3 text-muted-foreground/40" size={40} />
                           <p className="text-muted-foreground font-medium">
-                            {raffleSearch ? `No raffle records found matching "${raffleSearch}".` : "No raffle records found."}
+                            {raffleSearch
+                              ? `No opened boxes matching "${raffleSearch}".`
+                              : "No opened boxes. All 144 boxes are currently available on the live board."}
                           </p>
                         </div>
                       );
                     }
 
-                    return filtered.map((item) => {
-                      const isOverdue = item.status === "pending" && item.expiresAt && new Date(item.expiresAt).getTime() <= Date.now();
-                      return (
-                        <motion.div
-                          key={item.id}
-                          layout
-                          className={`bg-white border rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row sm:items-center gap-4 transition-all ${
-                            item.status === "pending" ? "border-amber-200 bg-amber-50/20" :
-                            item.status === "approved" ? "border-emerald-200 bg-emerald-50/20" :
-                            item.status === "rejected" ? "border-red-200 bg-red-50/20 opacity-75" :
-                            "border-gray-200 bg-gray-50/50 opacity-60"
-                          }`}
-                        >
-                          {/* Box Numbers Badges */}
-                          <div className="shrink-0 flex sm:flex-col items-center justify-center gap-1 min-w-[90px]">
-                            <div className="flex flex-wrap gap-1 max-w-[120px]">
-                              {item.numbers.slice().sort((a, b) => a - b).map((n) => (
-                                <span key={n} className="px-2.5 py-1 rounded-full text-xs font-black bg-primary text-primary-foreground shadow-sm">
-                                  #{n}
-                                </span>
-                              ))}
-                            </div>
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">
-                              {item.numbers.length} {item.numbers.length === 1 ? "Box" : "Boxes"}
-                            </span>
-                          </div>
+                    return (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {filteredBoxes.map((boxNum) => {
+                          const isSelected = selectedReopenBoxes.includes(boxNum);
+                          const matchingOrder = raffleItems.find((it) => it.numbers.includes(boxNum));
 
-                          {/* Buyer & Info */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex flex-wrap items-center gap-2 mb-1">
-                              <span className="font-bold text-foreground">{item.buyerName}</span>
-                              <span className="text-muted-foreground text-xs">{item.buyerEmail}</span>
-                              {item.buyerPhone && (
-                                <span className="text-muted-foreground text-xs">· {item.buyerPhone}</span>
-                              )}
-                              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                                item.paymentMethod === "card"
-                                  ? "bg-indigo-100 text-indigo-700"
-                                  : item.paymentMethod === "manual"
-                                  ? "bg-emerald-100 text-emerald-700"
-                                  : "bg-amber-100 text-amber-700"
-                              }`}>
-                                {item.paymentMethod === "card" ? "Credit Card" : item.paymentMethod === "manual" ? "Manual / Offline" : "Check"}
-                              </span>
-                              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                                item.status === "approved" ? "bg-emerald-100 text-emerald-800" :
-                                item.status === "pending" ? "bg-amber-100 text-amber-800" :
-                                item.status === "rejected" ? "bg-red-100 text-red-700" :
-                                "bg-gray-100 text-gray-700"
-                              }`}>
-                                {item.status === "approved" ? "Paid / Approved" : item.status}
-                              </span>
-                            </div>
-
-                            <div className="text-sm text-muted-foreground space-y-1">
-                              <div>
-                                <span className="font-bold text-accent">
-                                  ${item.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          return (
+                            <div
+                              key={boxNum}
+                              className={`bg-white border rounded-2xl p-4 shadow-sm flex items-center justify-between gap-3 transition-all ${
+                                isSelected ? "border-amber-400 bg-amber-50/30 ring-1 ring-amber-400" : "border-border hover:border-slate-300"
+                              }`}
+                            >
+                              <div className="flex items-center gap-3 min-w-0">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedReopenBoxes((prev) =>
+                                      prev.includes(boxNum)
+                                        ? prev.filter((n) => n !== boxNum)
+                                        : [...prev, boxNum]
+                                    );
+                                  }}
+                                  className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                                >
+                                  {isSelected ? (
+                                    <CheckSquare size={20} className="text-amber-600" />
+                                  ) : (
+                                    <Square size={20} className="text-slate-400" />
+                                  )}
+                                </button>
+                                <span className="w-11 h-11 rounded-xl bg-primary text-primary-foreground font-black text-sm flex items-center justify-center shrink-0 shadow-sm">
+                                  #{boxNum}
                                 </span>
-                                <span className="mx-2">·</span>
-                                <span>{new Date(item.timestamp).toLocaleString()}</span>
+                                <div className="min-w-0">
+                                  <p className="text-sm font-bold text-foreground truncate">
+                                    {matchingOrder ? matchingOrder.buyerName : "Direct / Board Sale"}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground truncate">
+                                    {matchingOrder ? matchingOrder.buyerEmail : `Box #${boxNum} opened`}
+                                  </p>
+                                  {matchingOrder && (
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                                      {matchingOrder.paymentMethod === "card"
+                                        ? "Credit Card"
+                                        : matchingOrder.paymentMethod === "manual"
+                                        ? "Manual Sale"
+                                        : "Check"}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
-                              {item.expiresAt && item.status === "pending" && (
-                                <div className="text-xs text-amber-700 font-medium">
-                                  ⏳ Expires: {new Date(item.expiresAt).toLocaleString()}
-                                  {isOverdue && <span className="text-red-500 font-extrabold ml-2">OVERDUE</span>}
+
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                disabled={reopeningBoxes}
+                                onClick={() => handleReopenBoxes([boxNum])}
+                                className="border-amber-200 text-amber-700 hover:bg-amber-50 rounded-xl h-8 px-3 text-xs font-bold shrink-0 flex items-center gap-1.5"
+                              >
+                                <RotateCcw size={12} />
+                                Re-open
+                              </Button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+
+              {/* Sub-tab 2: Records List / Table */}
+              {raffleSubTab === "orders" && (
+                <>
+                  {raffleLoading ? (
+                    <div className="flex justify-center py-20"><Loader2 className="animate-spin text-accent" size={40} /></div>
+                  ) : (
+                    <div className="space-y-4">
+                      {(() => {
+                        const filtered = raffleItems.filter((item) => {
+                          if (raffleFilter !== "all" && item.status !== raffleFilter) return false;
+                          if (!raffleSearch.trim()) return true;
+
+                          const q = raffleSearch.toLowerCase().trim();
+                          const cleanBox = q.replace(/^#/, "");
+                          const matchesBox = item.numbers.some((num) => num.toString() === cleanBox);
+                          const matchesName = item.buyerName.toLowerCase().includes(q);
+                          const matchesEmail = item.buyerEmail.toLowerCase().includes(q);
+                          const matchesPhone = item.buyerPhone?.toLowerCase().includes(q);
+
+                          return matchesBox || matchesName || matchesEmail || matchesPhone;
+                        });
+
+                        if (filtered.length === 0) {
+                          return (
+                            <div className="text-center py-20 border border-dashed border-border bg-white rounded-3xl">
+                              <Ticket className="mx-auto mb-3 text-muted-foreground/40" size={40} />
+                              <p className="text-muted-foreground font-medium">
+                                {raffleSearch ? `No raffle records found matching "${raffleSearch}".` : "No raffle records found."}
+                              </p>
+                            </div>
+                          );
+                        }
+
+                        return filtered.map((item) => {
+                          const isOverdue = item.status === "pending" && item.expiresAt && new Date(item.expiresAt).getTime() <= Date.now();
+                          return (
+                            <motion.div
+                              key={item.id}
+                              layout
+                              className={`bg-white border rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row sm:items-center gap-4 transition-all ${
+                                item.status === "pending" ? "border-amber-200 bg-amber-50/20" :
+                                item.status === "approved" ? "border-emerald-200 bg-emerald-50/20" :
+                                item.status === "rejected" ? "border-red-200 bg-red-50/20 opacity-75" :
+                                "border-gray-200 bg-gray-50/50 opacity-60"
+                              }`}
+                            >
+                              {/* Box Numbers Badges with Re-open shortcut */}
+                              <div className="shrink-0 flex sm:flex-col items-center justify-center gap-1 min-w-[90px]">
+                                <div className="flex flex-wrap gap-1 max-w-[140px]">
+                                  {item.numbers.slice().sort((a, b) => a - b).map((n) => {
+                                    const isCurrentlySold = boardSoldNumbers.includes(n);
+                                    return (
+                                      <div
+                                        key={n}
+                                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black shadow-sm ${
+                                          isCurrentlySold ? "bg-primary text-primary-foreground" : "bg-slate-200 text-slate-600 line-through"
+                                        }`}
+                                      >
+                                        <span>#{n}</span>
+                                        {isCurrentlySold ? (
+                                          <button
+                                            type="button"
+                                            title={`Re-open Box #${n}`}
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleReopenBoxes([n]);
+                                            }}
+                                            disabled={reopeningBoxes}
+                                            className="ml-0.5 text-[9px] text-amber-300 hover:text-white underline font-semibold transition-colors"
+                                          >
+                                            Re-open
+                                          </button>
+                                        ) : (
+                                          <span className="text-[8px] text-emerald-600 font-bold ml-0.5 uppercase tracking-tighter">
+                                            Reopened
+                                          </span>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">
+                                  {item.numbers.length} {item.numbers.length === 1 ? "Box" : "Boxes"}
+                                </span>
+                              </div>
+
+                              {/* Buyer & Info */}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex flex-wrap items-center gap-2 mb-1">
+                                  <span className="font-bold text-foreground">{item.buyerName}</span>
+                                  <span className="text-muted-foreground text-xs">{item.buyerEmail}</span>
+                                  {item.buyerPhone && (
+                                    <span className="text-muted-foreground text-xs">· {item.buyerPhone}</span>
+                                  )}
+                                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                                    item.paymentMethod === "card"
+                                      ? "bg-indigo-100 text-indigo-700"
+                                      : item.paymentMethod === "manual"
+                                      ? "bg-emerald-100 text-emerald-700"
+                                      : "bg-amber-100 text-amber-700"
+                                  }`}>
+                                    {item.paymentMethod === "card" ? "Credit Card" : item.paymentMethod === "manual" ? "Manual / Offline" : "Check"}
+                                  </span>
+                                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                                    item.status === "approved" ? "bg-emerald-100 text-emerald-800" :
+                                    item.status === "pending" ? "bg-amber-100 text-amber-800" :
+                                    item.status === "rejected" ? "bg-red-100 text-red-700" :
+                                    "bg-gray-100 text-gray-700"
+                                  }`}>
+                                    {item.status === "approved" ? "Paid / Approved" : item.status}
+                                  </span>
+                                </div>
+
+                                <div className="text-sm text-muted-foreground space-y-1">
+                                  <div>
+                                    <span className="font-bold text-accent">
+                                      ${item.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </span>
+                                    <span className="mx-2">·</span>
+                                    <span>{new Date(item.timestamp).toLocaleString()}</span>
+                                  </div>
+                                  {item.expiresAt && item.status === "pending" && (
+                                    <div className="text-xs text-amber-700 font-medium">
+                                      ⏳ Expires: {new Date(item.expiresAt).toLocaleString()}
+                                      {isOverdue && <span className="text-red-500 font-extrabold ml-2">OVERDUE</span>}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Actions — for pending check reservations */}
+                              {item.paymentMethod === "check" && item.status === "pending" && item.rawReservation && (
+                                <div className="flex gap-2 shrink-0">
+                                  <Button
+                                    onClick={() => handleRejectReservation(item.rawReservation!)}
+                                    disabled={processingReservationId === item.id}
+                                    variant="outline"
+                                    className="h-10 px-4 rounded-xl text-xs font-bold border-red-200 text-red-600 hover:bg-red-50 flex items-center gap-1.5"
+                                  >
+                                    {processingReservationId === item.id ? <Loader2 size={12} className="animate-spin" /> : <XCircle size={14} />}
+                                    Reject
+                                  </Button>
+                                  <Button
+                                    onClick={() => handleApproveReservation(item.rawReservation!)}
+                                    disabled={processingReservationId === item.id}
+                                    className="h-10 px-4 rounded-xl text-xs font-bold bg-green-600 hover:bg-green-700 text-white flex items-center gap-1.5"
+                                  >
+                                    {processingReservationId === item.id ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle size={14} />}
+                                    Approve
+                                  </Button>
                                 </div>
                               )}
-                            </div>
-                          </div>
+                            </motion.div>
+                          );
+                        });
+                      })()}
+                    </div>
+                  )}
+                </>
+              )}
 
-                          {/* Actions — for pending check reservations */}
-                          {item.paymentMethod === "check" && item.status === "pending" && item.rawReservation && (
-                            <div className="flex gap-2 shrink-0">
-                              <Button
-                                onClick={() => handleRejectReservation(item.rawReservation!)}
-                                disabled={processingReservationId === item.id}
-                                variant="outline"
-                                className="h-10 px-4 rounded-xl text-xs font-bold border-red-200 text-red-600 hover:bg-red-50 flex items-center gap-1.5"
-                              >
-                                {processingReservationId === item.id ? <Loader2 size={12} className="animate-spin" /> : <XCircle size={14} />}
-                                Reject
-                              </Button>
-                              <Button
-                                onClick={() => handleApproveReservation(item.rawReservation!)}
-                                disabled={processingReservationId === item.id}
-                                className="h-10 px-4 rounded-xl text-xs font-bold bg-green-600 hover:bg-green-700 text-white flex items-center gap-1.5"
-                              >
-                                {processingReservationId === item.id ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle size={14} />}
-                                Approve
-                              </Button>
-                            </div>
-                          )}
-                        </motion.div>
-                      );
-                    });
-                  })()}
+              {/* ── Advanced / Danger Zone (Admin Only) ────────────────────── */}
+              {user && (
+                <div className="mt-12 pt-8 border-t border-border">
+                  <details
+                    open={isDangerZoneOpen}
+                    onToggle={(e) => setIsDangerZoneOpen((e.target as HTMLDetailsElement).open)}
+                    className="group border border-red-200 bg-red-50/30 rounded-3xl p-6 transition-all"
+                  >
+                    <summary className="cursor-pointer list-none flex items-center justify-between text-red-700 select-none">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-2xl bg-red-100 flex items-center justify-center text-red-600 shrink-0">
+                          <AlertTriangle size={20} />
+                        </div>
+                        <div>
+                          <h4 className="font-display font-bold text-base text-red-900 flex items-center gap-2">
+                            Advanced / Danger Zone
+                            <span className="text-[10px] font-black uppercase tracking-wider bg-red-100 text-red-700 px-2 py-0.5 rounded-full">
+                              Admin Only
+                            </span>
+                          </h4>
+                          <p className="text-xs text-red-600/80">
+                            Perform full board wipe, order purge, and system reset.
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronDown
+                        size={18}
+                        className={`text-red-500 transition-transform duration-200 ${
+                          isDangerZoneOpen ? "rotate-180" : ""
+                        }`}
+                      />
+                    </summary>
+
+                    <div className="mt-6 pt-6 border-t border-red-200/60 space-y-4">
+                      <div className="bg-white/90 border border-red-200 rounded-2xl p-4 text-xs text-red-800 leading-relaxed space-y-1">
+                        <p className="font-bold">⚠️ Warning: Full Raffle Reset is permanent and irreversible.</p>
+                        <p>
+                          Executing this action will immediately clear all 144 boxes on the live public board, permanently delete all card orders (`raffle_orders`), and mark all pending check reservations as rejected.
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold uppercase tracking-wider text-red-900 block">
+                          Type <span className="underline font-black">RESET</span> to enable confirmation:
+                        </label>
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                          <Input
+                            type="text"
+                            placeholder='Type "RESET" to confirm'
+                            value={resetConfirmInput}
+                            onChange={(e) => setResetConfirmInput(e.target.value)}
+                            disabled={raffleResetting}
+                            className="bg-white border-red-300 focus:border-red-500 focus:ring-red-500 rounded-xl h-11 text-sm font-semibold max-w-xs"
+                          />
+                          <Button
+                            type="button"
+                            onClick={handleDangerZoneReset}
+                            disabled={resetConfirmInput.trim() !== "RESET" || raffleResetting}
+                            className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-11 px-6 font-black text-xs uppercase tracking-wider shadow-sm flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            {raffleResetting ? (
+                              <Loader2 size={16} className="animate-spin" />
+                            ) : (
+                              <RotateCcw size={16} />
+                            )}
+                            Permanently Reset Raffle
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </details>
                 </div>
               )}
 

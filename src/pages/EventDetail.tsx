@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Calendar, MapPin, Heart, DollarSign, Loader2 } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Heart, DollarSign, Loader2, Clock, Coffee, Flag, Utensils } from "lucide-react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { PageShell } from "@/components/PageShell";
@@ -10,7 +10,7 @@ import heroFallback from "@/assets/hero-bg.png";
 
 // Simple fallback for static routes so it doesn't break if they click a dummy event
 const staticEvents: any = {
-  "static-2026": { year: "2026", title: "Annual Charity Golf Outing", raised: "TBD", body: "Join us on Month Day, Year for our annual outing — a day of community, competition, and impact.", eventDate: "Monday September 28th 2026", location: "The Muttontown Club", charityPartner: "TBD", image: heroFallback, tag: "Upcoming" },
+  "static-2026": { year: "2026", title: "Annual Charity Golf Outing", raised: "TBD", body: "Join us on Monday, September 28th, 2026 at The Muttontown Club for our annual charity golf outing — a day of community, competition, and impact.", eventDate: "Monday September 28th 2026", location: "The Muttontown Club", charityPartner: "TBD", image: heroFallback, tag: "Upcoming" },
   "static-2025": { year: "2025", title: "Annual Charity Golf Outing", raised: "$171,215.25", body: "SMG Cares proudly hosted its 2025 Charity Golf Outing at The Muttontown Club...", eventDate: "TBD", location: "The Muttontown Club", charityPartner: "Fight CRC", image: heroFallback, tag: "Past Event" },
   "static-2024": { year: "2024", title: "Community Holiday Drive", raised: "$167,653.37", body: "The 2024 SMG Cares Charity Golf Outing, held at The Muttontown Club, was another outstanding success...", eventDate: "TBD", location: "The Muttontown Club", charityPartner: "Fight CRC", image: heroFallback, tag: "Past Event" },
   "static-2023": { year: "2023", title: "Inaugural Charity Golf Outing", raised: "$103,225", body: "In 2023, SMG Cares proudly launched its inaugural Charity Golf Outing...", eventDate: "TBD", location: "Cold Spring Country Club", charityPartner: "ROAR", image: heroFallback, tag: "Past Event" }
@@ -182,6 +182,44 @@ const EventDetail = () => {
                 <p className="leading-relaxed whitespace-pre-wrap">
                   {event.body}
                 </p>
+
+                {isUpcoming && (
+                  <div className="mt-10 p-8 rounded-3xl bg-surface border border-border shadow-sm">
+                    <div className="flex items-center gap-2 text-[#1E63D1] font-bold text-xs uppercase tracking-widest mb-6">
+                      <Clock size={16} />
+                      <span>Event Schedule</span>
+                    </div>
+                    <div className="space-y-6">
+                      <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 rounded-2xl bg-blue-50 text-[#1E63D1] flex items-center justify-center shrink-0 font-bold text-xs shadow-sm">
+                          <Coffee size={18} />
+                        </div>
+                        <div>
+                          <p className="text-xs font-black uppercase tracking-widest text-[#1E63D1]">10:00 AM</p>
+                          <p className="text-base font-bold text-primary">Participant Registration &amp; Welcome Breakfast</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 rounded-2xl bg-blue-50 text-[#1E63D1] flex items-center justify-center shrink-0 font-bold text-xs shadow-sm">
+                          <Flag size={18} />
+                        </div>
+                        <div>
+                          <p className="text-xs font-black uppercase tracking-widest text-[#1E63D1]">12:00 PM</p>
+                          <p className="text-base font-bold text-primary">Shotgun Start</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 rounded-2xl bg-blue-50 text-[#1E63D1] flex items-center justify-center shrink-0 font-bold text-xs shadow-sm">
+                          <Utensils size={18} />
+                        </div>
+                        <div>
+                          <p className="text-xs font-black uppercase tracking-widest text-[#1E63D1]">5:30 PM</p>
+                          <p className="text-base font-bold text-primary">Extended Cocktail Reception, Dinner and Raffle Drawing</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </motion.div>
             </div>
 

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Check, Trophy, Users, Star, Flag, ChevronRight, ChevronLeft, CheckCircle2, XCircle, AlertCircle, Infinity as InfinityIcon, CreditCard, Mail } from "lucide-react";
+import { ArrowRight, Check, Trophy, Users, Star, Flag, ChevronRight, ChevronLeft, CheckCircle2, XCircle, AlertCircle, Infinity as InfinityIcon, CreditCard, Mail, Clock, Coffee, Utensils } from "lucide-react";
 import { collection, onSnapshot, doc, getDoc, setDoc, updateDoc, increment, addDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { PageShell } from "@/components/PageShell";
@@ -753,6 +753,37 @@ const GolfRegister = () => {
             <p className="text-white/70 text-lg max-w-xl leading-relaxed font-medium">
               Reserve your spot or become a sponsor for our annual outing. All proceeds support charitable organizations in our community.
             </p>
+
+            {/* Outing Schedule Bar */}
+            <div className="mt-10 pt-6 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl">
+              <div className="flex items-center gap-3 bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10">
+                <div className="w-9 h-9 rounded-xl bg-gradient-gold flex items-center justify-center text-accent-foreground shrink-0 shadow-gold">
+                  <Coffee size={18} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-accent-soft">10:00 AM</p>
+                  <p className="text-xs text-white font-bold leading-tight mt-0.5">Registration &amp; Welcome Breakfast</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10">
+                <div className="w-9 h-9 rounded-xl bg-gradient-gold flex items-center justify-center text-accent-foreground shrink-0 shadow-gold">
+                  <Flag size={18} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-accent-soft">12:00 PM</p>
+                  <p className="text-xs text-white font-bold leading-tight mt-0.5">Shotgun Start</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10">
+                <div className="w-9 h-9 rounded-xl bg-gradient-gold flex items-center justify-center text-accent-foreground shrink-0 shadow-gold">
+                  <Utensils size={18} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-accent-soft">5:30 PM</p>
+                  <p className="text-xs text-white font-bold leading-tight mt-0.5">Cocktail Reception, Dinner &amp; Raffle</p>
+                </div>
+              </div>
+            </div>
           </motion.div>
         </div>
       </section>

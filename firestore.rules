@@ -2,46 +2,65 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
+    // Helper function to verify admin status via custom claims or admin email allowlist/domain
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.token.admin == true ||
+        request.auth.token.email in [
+          'smgcarescharity@gmail.com',
+          'admin@smgcares.org',
+          'info@smgcares.org',
+          'asad@smgcares.org',
+          'mahamali.khan2345@gmail.com'
+        ] ||
+        (request.auth.token.email != null && request.auth.token.email.matches('.*@smgcares\\.org$'))
+      );
+    }
+
     // 1. EVENTS: Anyone can read events to display on the site.
     // Only admins (logged in users) can create, update, or delete them.
     match /events/{document} {
       allow read: if true;
-      allow create, update, delete: if request.auth != null;
+      allow create, update, delete: if isAdmin() || request.auth != null;
     }
 
     // 2. PURCHASES: Anyone (unauthenticated site visitors) can create a purchase record.
     // Only admins can read, update, or delete them.
     match /purchases/{document} {
       allow create: if true;
-      allow read, update, delete: if request.auth != null; 
+      allow read, update, delete: if isAdmin() || request.auth != null; 
     }
 
     // 3. SPONSORSHIPS: Anyone can read sponsorships and update the sold/reserved count.
     // Only admins can create or delete them.
     match /sponsorships/{document} {
       allow read, update: if true; 
-      allow create, delete: if request.auth != null;
+      allow create, delete: if isAdmin() || request.auth != null;
     }
     
     // 4. CHECK RESERVATIONS: Anyone can create a pending reservation.
     // Only admins can read, update, or delete them.
     match /checkReservations/{document} {
       allow create: if true;
-      allow read, update, delete: if request.auth != null;
+      allow read, update, delete: if isAdmin() || request.auth != null;
     }
 
-    // 5. RAFFLE TICKETS / BOARD: Anyone can view board and update reserved/sold box numbers.
-    // Only admins can create initial board or delete entries.
+    // 5. RAFFLE TICKETS / BOARD:
+    // Anyone can read/view the live raffle board.
+    // Only admins can write, reset, re-open, or delete raffle data.
+    // Public buyers can only append purchased numbers on checkout (cannot reset or re-open).
     match /raffle_tickets/{document} {
-      allow read, update: if true;
-      allow create, delete: if request.auth != null;
+      allow read: if true;
+      allow write: if isAdmin();
+      allow update: if request.resource.data.soldNumbers.hasAll(resource.data.soldNumbers)
+                    && request.resource.data.soldNumbers.size() >= resource.data.soldNumbers.size();
     }
 
     // 6. RAFFLE ORDERS: Anyone can create a raffle order record upon checkout.
     // Only admins can read, update, or delete them.
     match /raffle_orders/{orderId} {
       allow create: if true;
-      allow read, update, delete: if request.auth != null;
+      allow read, update, delete: if isAdmin() || request.auth != null;
     }
   }
 }

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { CustomDonationModal } from "@/components/CustomDonationModal";
 import { RafflePaymentDialog } from "@/components/RafflePaymentDialog";
-import { Gift, Sparkles, ArrowRight, CheckCircle2, ShieldCheck, Ticket, ExternalLink, RefreshCw, Heart, Eye } from "lucide-react";
+import { Gift, Sparkles, ArrowRight, CheckCircle2, ShieldCheck, Ticket, ExternalLink, RefreshCw, Heart, Eye, Coffee, Flag, Utensils, Clock } from "lucide-react";
 import { motion } from "framer-motion";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -176,11 +176,44 @@ const Raffle = () => {
                 The Charity <br />
                 <span className="italic text-[#72a8ff]">raffle board.</span>
               </h1>
-              <p className="max-w-2xl text-base md:text-xl text-white/80 leading-relaxed font-medium mb-10 drop-shadow-lg">
+              <p className="max-w-2xl text-base md:text-xl text-white/80 leading-relaxed font-medium mb-6 drop-shadow-lg">
                 Pick your lucky box number(s) on our live raffle board. Every box number selected directly supports SMG Cares and enters you into our grand prize drawings.
               </p>
 
-              {/* THREE TOP-LEVEL ACTION BUTTONS */}
+              {/* Golf Outing Schedule Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 max-w-4xl mb-10">
+                <div className="bg-white/5 backdrop-blur-md rounded-2xl p-3.5 border border-white/10 flex items-center gap-3 hover:border-white/20 transition-all">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-gold flex items-center justify-center text-accent-foreground shrink-0 shadow-gold">
+                    <Coffee size={18} />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-accent-soft block leading-none mb-1">10:00 AM</span>
+                    <p className="text-xs font-bold text-white leading-tight">Participant Registration &amp; Welcome Breakfast</p>
+                  </div>
+                </div>
+
+                <div className="bg-white/5 backdrop-blur-md rounded-2xl p-3.5 border border-white/10 flex items-center gap-3 hover:border-white/20 transition-all">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-gold flex items-center justify-center text-accent-foreground shrink-0 shadow-gold">
+                    <Flag size={18} />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-accent-soft block leading-none mb-1">12:00 PM</span>
+                    <p className="text-xs font-bold text-white leading-tight">Shotgun Start</p>
+                  </div>
+                </div>
+
+                <div className="bg-white/5 backdrop-blur-md rounded-2xl p-3.5 border border-white/10 flex items-center gap-3 hover:border-white/20 transition-all">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-gold flex items-center justify-center text-accent-foreground shrink-0 shadow-gold">
+                    <Utensils size={18} />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-accent-soft block leading-none mb-1">5:30 PM</span>
+                    <p className="text-xs font-bold text-white leading-tight">Cocktails, Dinner &amp; Live Raffle Drawing</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* ACTION BUTTONS */}
               <div className="flex flex-col sm:flex-row flex-wrap gap-4 md:gap-5">
                 <Button
                   onClick={() => setDonationOpen(true)}
@@ -194,20 +227,10 @@ const Raffle = () => {
                 <Button
                   onClick={scrollToBoard}
                   size="lg"
-                  variant="outline"
-                  className="bg-white/10 border-white/20 text-white backdrop-blur-md hover:bg-white/20 rounded-full px-7 md:px-9 h-14 md:h-16 text-base md:text-lg font-black transition-all w-full sm:w-auto flex items-center justify-center gap-2"
-                >
-                  <Ticket size={20} className="text-accent" />
-                  Buy Raffle Tickets
-                </Button>
-
-                <Button
-                  onClick={scrollToBoard}
-                  size="lg"
                   className="bg-accent text-accent-foreground hover:bg-accent/90 rounded-full px-7 md:px-9 h-14 md:h-16 text-base md:text-lg font-black transition-transform hover:scale-105 w-full sm:w-auto flex items-center justify-center gap-2"
                 >
                   <Gift size={20} />
-                  Buy a Board Box Number
+                  Select Box Number
                 </Button>
               </div>
             </motion.div>
@@ -226,7 +249,7 @@ const Raffle = () => {
             What you can <span className="italic text-[#72a8ff]">win.</span>
           </h2>
           <p className="mt-4 text-muted-foreground text-base md:text-lg max-w-2xl font-medium">
-            Explore our luxury prize showcases below. Winners are drawn live from the box board at the 2026 Charity Golf Outing Dinner.
+            Explore our luxury prize showcases below. Winners are drawn live during the 5:30 PM Extended Cocktail Reception, Dinner and Raffle Drawing at the 2026 Charity Golf Outing.
           </p>
         </div>
 
@@ -549,7 +572,7 @@ const Raffle = () => {
                 variant="outline"
                 className="bg-white/5 border-white/20 text-white hover:bg-white/10 rounded-full px-8 h-14 font-black transition-all"
               >
-                Select Board Numbers
+                Select Box Number
               </Button>
             </div>
           </div>

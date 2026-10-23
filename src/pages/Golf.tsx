@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, MapPin, Calendar, Trophy, CheckCircle2, XCircle, AlertCircle, Infinity, FileText } from "lucide-react";
+import { ArrowRight, MapPin, Calendar, Trophy, CheckCircle2, XCircle, AlertCircle, Infinity, FileText, Clock, Coffee, Flag, Utensils } from "lucide-react";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { PageShell } from "@/components/PageShell";
@@ -304,6 +304,65 @@ const Golf = () => {
                 <div className="text-sm uppercase tracking-[0.2em] text-muted-foreground mt-1">{s.label}</div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── EVENT SCHEDULE ──────────────────────────────────────────────── */}
+      <section className="bg-primary text-primary-foreground py-16 md:py-24 relative overflow-hidden">
+        <div className="absolute inset-0 floral-pattern opacity-[0.04]" />
+        <div className="container-x relative z-10">
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-accent-soft text-xs font-black uppercase tracking-[0.3em] mb-4">
+              <Clock size={14} className="text-accent" /> Event Schedule
+            </span>
+            <h2 className="font-display text-3xl sm:text-4xl md:text-5xl text-white leading-tight">
+              Outing <span className="italic text-[#72a8ff]">Itinerary.</span>
+            </h2>
+            <p className="mt-4 text-white/70 text-base md:text-lg">
+              Join us for a full day of camaraderie, competition, and celebration at The Muttontown Club.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto">
+            <div className="bg-white/5 backdrop-blur-md rounded-3xl p-8 border border-white/10 hover:border-accent/40 transition-all group">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-gold flex items-center justify-center shadow-gold mb-6 group-hover:scale-110 transition-transform">
+                <Coffee className="text-accent-foreground" size={22} />
+              </div>
+              <span className="inline-block px-3.5 py-1 rounded-full bg-accent/20 text-accent-soft text-xs font-black tracking-widest uppercase mb-3">
+                10:00 AM
+              </span>
+              <h3 className="font-display text-xl text-white font-bold mb-2">Participant Registration</h3>
+              <p className="text-sm text-white/70 leading-relaxed font-medium">
+                Participant Registration &amp; Welcome Breakfast
+              </p>
+            </div>
+
+            <div className="bg-white/5 backdrop-blur-md rounded-3xl p-8 border border-white/10 hover:border-accent/40 transition-all group">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-gold flex items-center justify-center shadow-gold mb-6 group-hover:scale-110 transition-transform">
+                <Flag className="text-accent-foreground" size={22} />
+              </div>
+              <span className="inline-block px-3.5 py-1 rounded-full bg-accent/20 text-accent-soft text-xs font-black tracking-widest uppercase mb-3">
+                12:00 PM
+              </span>
+              <h3 className="font-display text-xl text-white font-bold mb-2">Shotgun Start</h3>
+              <p className="text-sm text-white/70 leading-relaxed font-medium">
+                18 Holes of Championship Golf at The Muttontown Club
+              </p>
+            </div>
+
+            <div className="bg-white/5 backdrop-blur-md rounded-3xl p-8 border border-white/10 hover:border-accent/40 transition-all group">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-gold flex items-center justify-center shadow-gold mb-6 group-hover:scale-110 transition-transform">
+                <Utensils className="text-accent-foreground" size={22} />
+              </div>
+              <span className="inline-block px-3.5 py-1 rounded-full bg-accent/20 text-accent-soft text-xs font-black tracking-widest uppercase mb-3">
+                5:30 PM
+              </span>
+              <h3 className="font-display text-xl text-white font-bold mb-2">Reception &amp; Dinner</h3>
+              <p className="text-sm text-white/70 leading-relaxed font-medium">
+                Extended Cocktail Reception, Dinner and Raffle Drawing
+              </p>
+            </div>
           </div>
         </div>
       </section>

@@ -651,9 +651,25 @@ const EventCard = ({
         <p className="mt-3 text-muted-foreground leading-relaxed line-clamp-2">
           {body}
         </p>
+        {!isPast && (
+          <div className="mt-4 pt-3 border-t border-black/10 space-y-1.5 text-xs text-primary/80">
+            <div className="flex items-center gap-2 font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />
+              <span><strong className="font-bold text-primary">10:00 AM</strong> — Participant Registration &amp; Welcome Breakfast</span>
+            </div>
+            <div className="flex items-center gap-2 font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />
+              <span><strong className="font-bold text-primary">12:00 PM</strong> — Shotgun Start</span>
+            </div>
+            <div className="flex items-center gap-2 font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />
+              <span><strong className="font-bold text-primary">5:30 PM</strong> — Extended Cocktail Reception, Dinner &amp; Raffle Drawing</span>
+            </div>
+          </div>
+        )}
         <Button
           asChild
-          className={`mt-8 rounded-full ${secondary ? "bg-primary text-primary-foreground" : "bg-gradient-gold text-accent-foreground shadow-gold"}`}
+          className={`mt-6 rounded-full ${secondary ? "bg-primary text-primary-foreground" : "bg-gradient-gold text-accent-foreground shadow-gold"}`}
         >
           <Link to={linkTo}>
             {buttonText} <ArrowRight className="ml-1 h-4 w-4" />
